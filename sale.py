@@ -1,6 +1,6 @@
 #This file is part of Tryton.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-from trytond.model import ModelView, ModelSQL, fields
+from trytond.model import ModelView, ModelSQL, fields, ModelWorkflow
 from trytond.pyson import Eval, Bool, Not
 from trytond.transaction import Transaction
 from trytond.pool import Pool
@@ -19,8 +19,46 @@ class InvoiceLine(ModelSQL, ModelView):
         
 InvoiceLine()
 
+class Sale(ModelWorkflow, ModelSQL, ModelView):
+    'Sale'
+    _name = "sale.sale"
     
+    def create_shipment(self, sale_id):
+        context = Transaction().context.copy()
+        context['explode_kit'] = False
+        with Transaction().set_context( context ):
+            res = super(Sale,self).create_shipment(sale_id)
+            if not res:
+                return res
+                
+        shipment_obj = Pool().get('stock.shipment.out')
+        move_obj = Pool().get('stock.move')
+
+        print res
+        for ship in shipment_obj.browse(res):
+            map_parent ={}
+            map_move_sales = {}
+            for move in ship.outgoing_moves:
+                if not move.sale_line:
+                    continue
+                map_parent[ move.id ] = move.sale_line.kit_parent_line and\
+                        move.sale_line.kit_parent_line.id or False
+                map_move_sales[move.sale_line.id] = move.id
+                
+            for move in ship.outgoing_moves:
+                if map_parent.get(move.id):
+                    sale_parent_line = map_parent[move.id]
+                    parent_move = map_move_sales.get(sale_parent_line)
+                    data = {
+                        'kit_parent_line': parent_move
+                    }
+                    move_obj.write([move.id], data)
+                    
+        return res                            
+Sale()
+
 class SaleLine(ModelSQL, ModelView):
+    'Sale Line'
     _name = "sale.line"
 
     kit_depth = fields.Integer('Depth', required=True, 
