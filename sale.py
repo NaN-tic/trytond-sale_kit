@@ -34,7 +34,6 @@ class Sale(ModelWorkflow, ModelSQL, ModelView):
         shipment_obj = Pool().get('stock.shipment.out')
         move_obj = Pool().get('stock.move')
 
-        print res
         for ship in shipment_obj.browse(res):
             map_parent ={}
             map_move_sales = {}
@@ -78,9 +77,10 @@ class SaleLine(ModelSQL, ModelView):
         dictionary of fields to be stored in a create statement.
         """
         res = {}
-        print "KIT: ", kit_line
-        # TODO: Take unit into account
-        quantity = kit_line.quantity * line.quantity
+        uom_obj = Pool().get('product.uom')        
+        quantity = uom_obj.compute_qty(kit_line.unit,
+                        kit_line.quantity, line.uom) * line.quantity
+
         res['product'] = kit_line.product.id
         res['quantity'] = quantity
         res['unit'] = line.unit.id
