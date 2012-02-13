@@ -1,0 +1,56 @@
+#
+# Angel Alvarez <angel@nan-tic.com>, 2012.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Last-Translator: Angel Alvarez <angel@nan-tic.com>\n"
+"PO-Revision-Date: 2012-02-11 12:11+0100\n"
+"Project-Id-Version: \n"
+"Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
+"Language: ca\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.2\n"
+"MIME-Version: 1.0\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+msgctxt "field:product.product,explode_kit_in_sales:0"
+msgid "Explode in Sales"
+msgstr "Expandir en les Ventes"
+
+msgctxt "field:product.product,kit_fixed_list_price:0"
+msgid "Fixed List Price"
+msgstr "Preu Fix"
+
+msgctxt "field:sale.line,kit_child_lines:0"
+msgid "Lines in the kit"
+msgstr "Línies del Kit"
+
+msgctxt "field:sale.line,kit_depth:0"
+msgid "Depth"
+msgstr "Profunditat"
+
+msgctxt "field:sale.line,kit_parent_line:0"
+msgid "Parent Kit Line"
+msgstr "Pare de la línia del Kit."
+
+msgctxt "help:product.product,kit_fixed_list_price:0"
+msgid ""
+"Mark this field if the list price of the kit should be fixed. Do not mark it"
+" if the price should be calculated from the sum of the prices of the "
+"products in the pack."
+msgstr ""
+"Marca  aquest camp si el preu es fix. Si no el marques "
+"el preu es calcularà amb la suma dels seus components."
+
+msgctxt "help:sale.line,kit_child_lines:0"
+msgid "Subcomponents of the kit."
+msgstr "Components del kit."
+
+msgctxt "help:sale.line,kit_depth:0"
+msgid "Depth of the line if it is part of a kit."
+msgstr "Profunditat de la línies si forma part del kit."
+
+msgctxt "help:sale.line,kit_parent_line:0"
+msgid "The kit that contains this product."
+msgstr "El kit que conté aquest producte."
+

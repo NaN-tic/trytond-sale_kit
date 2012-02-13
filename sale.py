@@ -19,6 +19,14 @@ class InvoiceLine(ModelSQL, ModelView):
         
 InvoiceLine()
 
+class Sale(ModelWorkflow, ModelSQL, ModelView):
+    'Sale'
+    _name = 'sale.sale'
+
+
+    def create_shipment(self, sale_id):
+        with Transaction().
+        super(Sale,self).create_shipment(sale_id)
     
 class SaleLine(ModelSQL, ModelView):
     _name = "sale.line"
