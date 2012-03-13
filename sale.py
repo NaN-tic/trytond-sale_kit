@@ -7,6 +7,7 @@ from trytond.pool import Pool
 from decimal import Decimal
 import copy
 
+
 class InvoiceLine(ModelSQL, ModelView):
     'Invoice Line'
     _name = 'account.invoice.line'
@@ -16,8 +17,9 @@ class InvoiceLine(ModelSQL, ModelView):
         self.unit_price = copy.copy(self.unit_price)
         self.unit_price.states['required'] = False
         self._reset_columns()
-        
+
 InvoiceLine()
+
 
 class Sale(ModelWorkflow, ModelSQL, ModelView):
     'Sale'
@@ -79,7 +81,7 @@ class SaleLine(ModelSQL, ModelView):
         res = {}
         uom_obj = Pool().get('product.uom')        
         quantity = uom_obj.compute_qty(kit_line.unit,
-                        kit_line.quantity, line.uom) * line.quantity
+                        kit_line.quantity, line.unit) * line.quantity
 
         res['product'] = kit_line.product.id
         res['quantity'] = quantity
