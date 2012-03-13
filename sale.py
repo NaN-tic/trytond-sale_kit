@@ -1,6 +1,6 @@
 #This file is part of Tryton.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
-from trytond.model import ModelView, ModelSQL, fields, ModelWorkflow
+from trytond.model import ModelView, ModelSQL, fields, Workflow
 from trytond.pyson import Eval, Bool, Not
 from trytond.transaction import Transaction
 from trytond.pool import Pool
@@ -16,10 +16,10 @@ class InvoiceLine(ModelSQL, ModelView):
         self.unit_price = copy.copy(self.unit_price)
         self.unit_price.states['required'] = False
         self._reset_columns()
-        
+
 InvoiceLine()
 
-class Sale(ModelWorkflow, ModelSQL, ModelView):
+class Sale(Workflow, ModelSQL, ModelView):
     'Sale'
     _name = "sale.sale"
     
@@ -34,6 +34,7 @@ class Sale(ModelWorkflow, ModelSQL, ModelView):
         shipment_obj = Pool().get('stock.shipment.out')
         move_obj = Pool().get('stock.move')
 
+        print res
         for ship in shipment_obj.browse(res):
             map_parent ={}
             map_move_sales = {}
@@ -77,10 +78,9 @@ class SaleLine(ModelSQL, ModelView):
         dictionary of fields to be stored in a create statement.
         """
         res = {}
-        uom_obj = Pool().get('product.uom')        
+        uom_obj = Pool().get('product.uom')
         quantity = uom_obj.compute_qty(kit_line.unit,
-                        kit_line.quantity, line.uom) * line.quantity
-
+                kit_line.quantity, line.unit) * line.quantity
         res['product'] = kit_line.product.id
         res['quantity'] = quantity
         res['unit'] = line.unit.id
