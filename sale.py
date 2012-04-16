@@ -34,7 +34,6 @@ class Sale(Workflow, ModelSQL, ModelView):
         shipment_obj = Pool().get('stock.shipment.out')
         move_obj = Pool().get('stock.move')
 
-        print res
         for ship in shipment_obj.browse(res):
             map_parent ={}
             map_move_sales = {}
@@ -101,14 +100,17 @@ class SaleLine(ModelSQL, ModelView):
 
         }
         res.update(self.on_change_product(vals))
+        if 'unit.rec_name' in res:
+            # it's addded in 'sale' module but is not a field
+            # TODO automate
+            del res['unit.rec_name']
 
         if res.get('description'):
-            res['description'] = '%s%s' % ('> ' * depth, 
-                    res['description'])
-            
+            res['description'] = '%s%s' % ('> ' * depth, res['description'])
+
         kit_obj = Pool().get("product.kit.line")
         product_obj = Pool().get("product.product")
-        
+
         if kit_obj.get_sale_price(kit_line.id):
             res['unit_price'] = product_obj.get_sale_price(
                 [kit_line.product.id], 0)[kit_line.product.id]
