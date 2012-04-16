@@ -2,18 +2,18 @@
 #This file is part of Tryton.  The COPYRIGHT file at the top level of
 #this repository contains the full copyright notices and license terms.
 
-import sys, os
+import os
+import sys
+import unittest
+
 DIR = os.path.abspath(os.path.normpath(os.path.join(__file__,
     '..', '..', '..', '..', '..', 'trytond')))
 if os.path.isdir(DIR):
     sys.path.insert(0, os.path.dirname(DIR))
 
-import unittest
-from decimal import Decimal
+from trytond.tests.test_tryton import test_view, test_depends
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import POOL, DB_NAME, USER, CONTEXT, test_view,\
-    test_depends
-from trytond.transaction import Transaction
+
 
 class ProductKitTestCase(unittest.TestCase):
     '''
@@ -34,6 +34,7 @@ class ProductKitTestCase(unittest.TestCase):
         Test depends.
         '''
         test_depends()
+
 
 def suite():
     suite = trytond.tests.test_tryton.suite()
