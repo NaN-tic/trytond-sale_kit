@@ -27,11 +27,11 @@ class Sale(Workflow, ModelSQL, ModelView):
     'Sale'
     _name = "sale.sale"
 
-    def create_shipment(self, sale_id):
+    def create_shipment(self, sale_id, shipment_type):
         context = Transaction().context.copy()
         context['explode_kit'] = False
         with Transaction().set_context(context):
-            res = super(Sale, self).create_shipment(sale_id)
+            res = super(Sale, self).create_shipment(sale_id, shipment_type)
             if not res:
                 return res
 
