@@ -4,7 +4,7 @@
 
 {
     'name': 'Sale Product Kit',
-    'version': '2.2.0',
+    'version': '2.4.0',
     'author': 'NaN·tic',
     'email': 'info@nan-tic.com',
     'website': 'http://www.nan-tic.com/',
