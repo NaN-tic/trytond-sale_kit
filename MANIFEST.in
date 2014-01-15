@@ -5,7 +5,6 @@ include COPYRIGHT
 include CHANGELOG
 include LICENSE
 include *.xml
-include *.odt
+include view/*.xml
 include locale/*.po
 include doc/*
-include icons/*

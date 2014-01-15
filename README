@@ -1,8 +1,7 @@
 trytond_sale_kit
-===================
+================
 
 The sale_kit module of the Tryton application platform.
-See __tryton__.py
 
 Installing
 ----------

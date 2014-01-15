@@ -1,18 +1,19 @@
-#This file is part of Tryton.  The COPYRIGHT file at the top level of
-#this repository contains the full copyright notices and license terms.
-
+#This file is part sale_kit module for Tryton.
+#The COPYRIGHT file at the top level of this repository contains 
+#the full copyright notices and license terms.
 from decimal import Decimal
 import copy
-
-from trytond.model import ModelView, ModelSQL, fields, Workflow
-from trytond.pool import Pool
+from trytond.model import fields
+from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
 from trytond.transaction import Transaction
 
+__all__ = ['InvoiceLine', 'Sale', 'SaleLine']
+__metaclass__ = PoolMeta
 
-class InvoiceLine(ModelSQL, ModelView):
-    'Invoice Line'
-    _name = 'account.invoice.line'
+
+class InvoiceLine:
+    __name__ = 'account.invoice.line'
 
     def __init__(self):
         super(InvoiceLine, self).__init__()
@@ -20,12 +21,9 @@ class InvoiceLine(ModelSQL, ModelView):
         self.unit_price.states['required'] = False
         self._reset_columns()
 
-InvoiceLine()
 
-
-class Sale(Workflow, ModelSQL, ModelView):
-    'Sale'
-    _name = "sale.sale"
+class Sale:
+    __name__ = "sale.sale"
 
     def create_shipment(self, sale_id, shipment_type):
         context = Transaction().context.copy()
@@ -57,13 +55,10 @@ class Sale(Workflow, ModelSQL, ModelView):
                     }
                     move_obj.write([move.id], data)
         return res
-Sale()
 
 
-class SaleLine(ModelSQL, ModelView):
-    'Sale Line'
-    _name = "sale.line"
-
+class SaleLine:
+    __name__ = "sale.line"
     kit_depth = fields.Integer('Depth', required=True,
             help='Depth of the line if it is part of a kit.')
     kit_parent_line = fields.Many2One('sale.line', 'Parent Kit Line',
@@ -71,11 +66,9 @@ class SaleLine(ModelSQL, ModelView):
     kit_child_lines = fields.One2Many('sale.line', 'kit_parent_line',
             'Lines in the kit', help='Subcomponents of the kit.')
 
-    # sale.line
     def default_kit_depth(self):
         return 0
 
-    # sale.line
     def get_kit_line(self, line, kit_line, depth):
         """
         Given a line browse object and a kit dictionary returns the
@@ -94,7 +87,6 @@ class SaleLine(ModelSQL, ModelView):
         res['description'] = ''
         res['kit_depth'] = depth
         res['kit_parent_line'] = line.id
-
         vals = {
             'product': kit_line.product.id,
             'quantity': quantity,
@@ -102,29 +94,23 @@ class SaleLine(ModelSQL, ModelView):
             'sale_unit': line.unit.id,
             '_parent_sale.party': line.sale.party.id,
             '_parent_sale.currency': line.sale.currency.id,
-
-        }
+            }
         res.update(self.on_change_product(vals))
         if 'unit.rec_name' in res:
             # it's addded in 'sale' module but is not a field
             # TODO automate
             del res['unit.rec_name']
-
         if res.get('description'):
             res['description'] = '%s%s' % ('> ' * depth, res['description'])
-
         kit_obj = Pool().get("product.kit.line")
         product_obj = Pool().get("product.product")
-
         if kit_obj.get_sale_price(kit_line.id):
             res['unit_price'] = product_obj.get_sale_price(
                 [kit_line.product.id], 0)[kit_line.product.id]
         else:
             res['unit_price'] = Decimal('0.0')
-
         return res
 
-    # sale.line
     def __init__(self):
         super(SaleLine, self).__init__()
         self.unit_price = copy.copy(self.unit_price)
@@ -132,7 +118,6 @@ class SaleLine(ModelSQL, ModelView):
         self.unit_price.states['required'] = required
         self._reset_columns()
 
-    # sale.line
     def explode_kit(self, line_id, depth=1):
         """
         Walks through the Kit tree in depth-first order and returns
@@ -142,7 +127,6 @@ class SaleLine(ModelSQL, ModelView):
         line = self.browse(line_id)
         if not line.product:
             return []
-
         result = []
         for kit_line in line.product.kit_lines:
             values = self.get_kit_line(line, kit_line, depth)
@@ -150,13 +134,11 @@ class SaleLine(ModelSQL, ModelView):
             self.explode_kit(new_id, depth + 1)
         return result
 
-    # sale.line
     def create(self, values):
         new_sale_id = super(SaleLine, self).create(values)
         self.explode_kit(new_sale_id)
         return new_sale_id
 
-    # sale.line
     def kit_tree_ids(self, line):
         res = []
         for kit_line in line.kit_child_lines:
@@ -164,16 +146,13 @@ class SaleLine(ModelSQL, ModelView):
             res += self.kit_tree_ids(kit_line)
         return res
 
-    # sale.line
     def write(self, ids, values):
         reset_kit = False
         if 'product' in values or 'quantity' in values or 'unit' in values:
             reset_kit = True
-
         if isinstance(ids, (int, long)):
             ids = [ids]
         ids = ids[:]
-
         if reset_kit:
             to_delete = []
             for line in self.browse(ids):
@@ -185,5 +164,3 @@ class SaleLine(ModelSQL, ModelView):
             for sale_id in ids:
                 self.explode_kit(sale_id)
         return res
-
-SaleLine()

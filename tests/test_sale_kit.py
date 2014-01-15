@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-#This file is part of Tryton.  The COPYRIGHT file at the top level of
-#this repository contains the full copyright notices and license terms.
+#This file is part sale_kit module for Tryton.
+#The COPYRIGHT file at the top level of this repository contains 
+#the full copyright notices and license terms.
 
 import os
 import sys
@@ -15,9 +16,9 @@ from trytond.tests.test_tryton import test_view, test_depends
 import trytond.tests.test_tryton
 
 
-class ProductKitTestCase(unittest.TestCase):
+class SaleKitTestCase(unittest.TestCase):
     '''
-    Test ProductKit module.
+    Test Sale Kit module.
     '''
 
     def setUp(self):
@@ -39,7 +40,7 @@ class ProductKitTestCase(unittest.TestCase):
 def suite():
     suite = trytond.tests.test_tryton.suite()
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(
-        ProductKitTestCase))
+        SaleKitTestCase))
     return suite
 
 if __name__ == '__main__':
