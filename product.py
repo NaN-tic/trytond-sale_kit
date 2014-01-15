@@ -8,20 +8,15 @@ from trytond.pyson import Eval, Bool
 __all__ = ['Product', 'ProductKitLine']
 __metaclass__ = PoolMeta
 STATES = {
-    'readonly': Bool(~Eval('kit')),
+    'invisible': Bool(~Eval('kit')),
 }
-DEPENDS = ['stock_kit']
+DEPENDS = ['kit']
 
 
 class Product:
     __name__ = "product.product"
     explode_kit_in_sales = fields.Boolean('Explode in Sales', states=STATES,
             depends=DEPENDS)
-    kit_fixed_list_price = fields.Boolean('Fixed List Price', states=STATES,
-            depends=DEPENDS, help='Mark this '
-            'field if the list price of the kit should be fixed. Do not mark '
-            'it if the price should be calculated from the sum of the prices '
-            'of the products in the pack.')
 
     @staticmethod
     def default_explode_kit_in_sales():
