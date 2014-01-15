@@ -28,29 +28,28 @@ class Product:
 
     @classmethod
     def __setup__(cls):
-       
         super(Product, cls).__setup__()
-        self._constraints += [
+        cls._constraints += [
             ('check_required_salable_products_in_kits',
                     'salable_product_required_in_kit'),
         ]
-        self._error_messages.update({
+        cls._error_messages.update({
             'salable_product_required_in_kit': 'The products in a Kit with ' \
                     'the flag "Explode in Sales" checked must to be ' \
                     '"Salables".'
         })
 
-    def check_required_salable_products_in_kits(self, ids):
+    def check_required_salable_products_in_kits(self):
         kit_line_obj = Pool().get('product.kit.line')
         n_not_salable_lines = kit_line_obj.search_count([
-                    ('parent', 'in', ids),
+                    ('parent', 'in', [self.id]),
                     ('parent.explode_kit_in_sales', '=', True),
                     ('product.salable', '=', False),
                 ])
         if n_not_salable_lines:
             return False
         n_kits_explode_in_sales = kit_line_obj.search_count([
-                    ('product', 'in', ids),
+                    ('product', 'in', [self.id]),
                     ('product.salable', '=', False),
                     ('parent.explode_kit_in_sales', '=', True),
                 ])
