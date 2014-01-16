@@ -1,5 +1,5 @@
 #This file is part sale_kit module for Tryton.
-#The COPYRIGHT file at the top level of this repository contains 
+#The COPYRIGHT file at the top level of this repository contains
 #the full copyright notices and license terms.
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pool import Pool, PoolMeta
@@ -31,27 +31,27 @@ class Product:
         super(Product, cls).__setup__()
         cls._constraints += [
             ('check_required_salable_products_in_kits',
-                    'salable_product_required_in_kit'),
-        ]
+                'salable_product_required_in_kit'),
+            ]
         cls._error_messages.update({
-            'salable_product_required_in_kit': 'The products in a Kit with ' \
-                    'the flag "Explode in Sales" checked must to be ' \
-                    '"Salables".'
-        })
+                'salable_product_required_in_kit':
+                    'The products in a Kit with the flag "Explode in Sales" '
+                    'checked must to be "Salables".',
+                })
 
     def check_required_salable_products_in_kits(self):
         kit_line_obj = Pool().get('product.kit.line')
         n_not_salable_lines = kit_line_obj.search_count([
-                    ('parent', 'in', [self.id]),
-                    ('parent.explode_kit_in_sales', '=', True),
-                    ('product.salable', '=', False),
+                ('parent', 'in', [self.id]),
+                ('parent.explode_kit_in_sales', '=', True),
+                ('product.salable', '=', False),
                 ])
         if n_not_salable_lines:
             return False
         n_kits_explode_in_sales = kit_line_obj.search_count([
-                    ('product', 'in', [self.id]),
-                    ('product.salable', '=', False),
-                    ('parent.explode_kit_in_sales', '=', True),
+                ('product', 'in', [self.id]),
+                ('product.salable', '=', False),
+                ('parent.explode_kit_in_sales', '=', True),
                 ])
         if n_kits_explode_in_sales:
             return False
@@ -68,7 +68,7 @@ class ProductKitLine(ModelSQL, ModelView):
         if parent.kit_fixed_list_price:
             return False
         parent_kit_lines = self.search([
-                    ("product", "=", parent.id),
+                ("product", "=", parent.id),
                 ])
         for line in self.browse(parent_kit_lines):
             if line in [x.id for x in line.product.kit_lines]:
@@ -79,11 +79,12 @@ class ProductKitLine(ModelSQL, ModelView):
         super(ProductKitLine, self).__init__()
         self._constraints += [
             ('check_required_salable_lines', 'salable_lines_required'),
-        ]
+            ]
         self._error_messages.update({
-            'salable_lines_required': 'The lines of a Kit with the flag ' \
-                    '"Explode in Sales" checked must to be "Salables".'
-        })
+                'salable_lines_required':
+                    'The lines of a Kit with the flag "Explode in Sales" '
+                    'checked must to be "Salables".',
+                })
 
     def check_required_salable_lines(self, ids):
         for kit_line in self.browse(ids):

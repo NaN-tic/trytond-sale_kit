@@ -1,5 +1,5 @@
 #This file is part sale_kit module for Tryton.
-#The COPYRIGHT file at the top level of this repository contains 
+#The COPYRIGHT file at the top level of this repository contains
 #the full copyright notices and license terms.
 from decimal import Decimal
 import copy
@@ -60,11 +60,11 @@ class Sale:
 class SaleLine:
     __name__ = "sale.line"
     kit_depth = fields.Integer('Depth', required=True,
-            help='Depth of the line if it is part of a kit.')
+        help='Depth of the line if it is part of a kit.')
     kit_parent_line = fields.Many2One('sale.line', 'Parent Kit Line',
-            help='The kit that contains this product.')
+        help='The kit that contains this product.')
     kit_child_lines = fields.One2Many('sale.line', 'kit_parent_line',
-            'Lines in the kit', help='Subcomponents of the kit.')
+        'Lines in the kit', help='Subcomponents of the kit.')
 
     def default_kit_depth(self):
         return 0
