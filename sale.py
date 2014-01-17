@@ -114,10 +114,14 @@ class SaleLine:
         lines.extend(cls.explode_kit(lines))
         return lines
 
-    def get_kit_lines(self):
+    def get_kit_lines(self, kit_line=None):
         res = []
-        for kit_line in self.kit_child_lines:
-            res.append(kit_line.id)
+        if kit_line:
+            childs = kit_line.kit_child_lines
+        else:
+            childs = self.kit_child_lines
+        for kit_line in childs:
+            res.append(kit_line)
             res += self.get_kit_lines(kit_line)
         return res
 
