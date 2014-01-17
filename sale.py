@@ -135,6 +135,5 @@ class SaleLine:
             lines = list(set(lines) - set(to_delete))
         res = super(SaleLine, cls).write(lines, values)
         if reset_kit:
-            for line in lines:
-                cls.explode_kit(line)
+            cls.explode_kit(lines)
         return res
