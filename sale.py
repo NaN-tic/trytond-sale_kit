@@ -1,64 +1,53 @@
-#This file is part sale_kit module for Tryton.
+#This file is part of sale_kit module for Tryton.
 #The COPYRIGHT file at the top level of this repository contains
 #the full copyright notices and license terms.
 from decimal import Decimal
-import copy
 from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
 from trytond.transaction import Transaction
 
-__all__ = ['InvoiceLine', 'Sale', 'SaleLine']
+__all__ = ['Sale', 'SaleLine']
 __metaclass__ = PoolMeta
 
 
-class InvoiceLine:
-    __name__ = 'account.invoice.line'
-
-    def __init__(self):
-        super(InvoiceLine, self).__init__()
-        self.unit_price = copy.copy(self.unit_price)
-        self.unit_price.states['required'] = False
-        self._reset_columns()
-
-
 class Sale:
-    __name__ = "sale.sale"
+    __name__ = 'sale.sale'
 
-    def create_shipment(self, sale_id, shipment_type):
+    def create_shipment(self, shipment_type):
+        pool = Pool()
+        StockMove = pool.get('stock.move')
         context = Transaction().context.copy()
         context['explode_kit'] = False
         with Transaction().set_context(context):
-            res = super(Sale, self).create_shipment(sale_id, shipment_type)
-            if not res:
-                return res
-
-        shipment_obj = Pool().get('stock.shipment.out')
-        move_obj = Pool().get('stock.move')
-
-        for ship in shipment_obj.browse(res):
-            map_parent = {}
-            map_move_sales = {}
-            for move in ship.outgoing_moves:
-                if not move.sale_line:
-                    continue
-                map_parent[move.id] = (move.sale_line.kit_parent_line and
-                        move.sale_line.kit_parent_line.id or False)
-                map_move_sales[move.sale_line.id] = move.id
-
-            for move in ship.outgoing_moves:
-                if map_parent.get(move.id):
-                    sale_parent_line = map_parent[move.id]
-                    parent_move = map_move_sales.get(sale_parent_line)
-                    data = {
-                        'kit_parent_line': parent_move
-                    }
-                    move_obj.write([move.id], data)
-        return res
+            shipments = super(Sale, self).create_shipment(shipment_type)
+        if shipments:
+            for shipment in shipments:
+                map_parent = {}
+                map_move_sales = {}
+                for move in shipment.outgoing_moves:
+                    if not move.sale:
+                        continue
+                    for sale_line in move.sale.lines:
+                        if move.product == sale_line.product:
+                            break
+                    else:
+                        continue
+                    map_parent[move.id] = (sale_line.kit_parent_line and
+                            sale_line.kit_parent_line.id or False)
+                    map_move_sales[sale_line.id] = move.id
+                    if map_parent.get(move.id):
+                        sale_parent_line = map_parent[move.id]
+                        parent_move = map_move_sales.get(sale_parent_line)
+                        data = {
+                            'kit_parent_line': parent_move,
+                            }
+                        StockMove.write([move], data)
+        return shipments
 
 
 class SaleLine:
-    __name__ = "sale.line"
+    __name__ = 'sale.line'
     kit_depth = fields.Integer('Depth', required=True,
         help='Depth of the line if it is part of a kit.')
     kit_parent_line = fields.Many2One('sale.line', 'Parent Kit Line',
@@ -66,101 +55,86 @@ class SaleLine:
     kit_child_lines = fields.One2Many('sale.line', 'kit_parent_line',
         'Lines in the kit', help='Subcomponents of the kit.')
 
-    def default_kit_depth(self):
+    @classmethod
+    def __setup__(cls):
+        super(SaleLine, cls).__setup__()
+        required = ~(Eval('kit_parent_line', False))
+        cls.unit_price.states['required'] = required
+
+    @classmethod
+    def default_kit_depth(cls):
         return 0
 
-    def get_kit_line(self, line, kit_line, depth):
-        """
-        Given a line browse object and a kit dictionary returns the
-        dictionary of fields to be stored in a create statement.
-        """
-        res = {}
-        uom_obj = Pool().get('product.uom')
-        quantity = uom_obj.compute_qty(kit_line.unit,
-                kit_line.quantity, line.unit) * line.quantity
-        res['product'] = kit_line.product.id
-        res['quantity'] = quantity
-        res['unit'] = line.unit.id
-        res['sale'] = line.sale.id
-        res['type'] = 'line'
-        res['sequence'] = line.sequence + kit_line.sequence
-        res['description'] = ''
-        res['kit_depth'] = depth
-        res['kit_parent_line'] = line.id
-        vals = {
-            'product': kit_line.product.id,
-            'quantity': quantity,
-            'unit': line.unit.id,
-            'sale_unit': line.unit.id,
-            '_parent_sale.party': line.sale.party.id,
-            '_parent_sale.currency': line.sale.currency.id,
-            }
-        res.update(self.on_change_product(vals))
-        if 'unit.rec_name' in res:
-            # it's addded in 'sale' module but is not a field
-            # TODO automate
-            del res['unit.rec_name']
-        if res.get('description'):
-            res['description'] = '%s%s' % ('> ' * depth, res['description'])
-        kit_obj = Pool().get("product.kit.line")
-        product_obj = Pool().get("product.product")
-        if kit_obj.get_sale_price(kit_line.id):
-            res['unit_price'] = product_obj.get_sale_price(
-                [kit_line.product.id], 0)[kit_line.product.id]
-        else:
-            res['unit_price'] = Decimal('0.0')
-        return res
-
-    def __init__(self):
-        super(SaleLine, self).__init__()
-        self.unit_price = copy.copy(self.unit_price)
-        required = ~(Eval('kit_parent_line', False))
-        self.unit_price.states['required'] = required
-        self._reset_columns()
-
-    def explode_kit(self, line_id, depth=1):
-        """
+    @classmethod
+    def explode_kit(cls, lines):
+        '''
         Walks through the Kit tree in depth-first order and returns
         a sorted list with all the components of the product.
         If no product on Sale Line avoid to try explode kits
-        """
-        line = self.browse(line_id)
-        if not line.product:
-            return []
+        '''
+        pool = Pool()
+        Product = pool.get('product.product')
+        ProductUom = pool.get('product.uom')
+        SaleLine = pool.get('sale.line')
         result = []
-        for kit_line in line.product.kit_lines:
-            values = self.get_kit_line(line, kit_line, depth)
-            new_id = self.create(values)
-            self.explode_kit(new_id, depth + 1)
+        for line in lines:
+            depth = line.kit_depth + 1
+            if (line.product and line.product.kit_lines
+                    and line.product.explode_kit_in_sales):
+                for kit_line in line.product.kit_lines:
+                    product = kit_line.product
+                    sale_line = SaleLine()
+                    sale_line.product = product
+                    sale_line.quantity = ProductUom.compute_qty(
+                        kit_line.unit, kit_line.quantity, line.unit
+                        ) * line.quantity
+                    sale_line.unit = line.unit
+                    sale_line.sale = line.sale
+                    sale_line.type = 'line'
+                    sale_line.sequence = line.sequence + kit_line.sequence
+                    sale_line.kit_parent_line = line
+                    sale_line.description = ''
+                    defaults = sale_line.on_change_product()
+                    sale_line.kit_depth = depth
+                    sale_line.description = ('%s%s' %
+                        ('> ' * depth, defaults['description'])
+                        if defaults.get('description') else ' ')
+                    if kit_line.get_sale_price():
+                        sale_line.unit_price = Product.get_sale_price(
+                            [product], 0)[product.id]
+                    else:
+                        sale_line.unit_price = Decimal('0.0')
+                    sale_line.save()
+                    result.append(sale_line)
         return result
 
-    def create(self, values):
-        new_sale_id = super(SaleLine, self).create(values)
-        self.explode_kit(new_sale_id)
-        return new_sale_id
+    @classmethod
+    def create(cls, values):
+        lines = super(SaleLine, cls).create(values)
+        lines.extend(cls.explode_kit(lines))
+        return lines
 
-    def kit_tree_ids(self, line):
+    def get_kit_lines(self):
         res = []
-        for kit_line in line.kit_child_lines:
+        for kit_line in self.kit_child_lines:
             res.append(kit_line.id)
-            res += self.kit_tree_ids(kit_line)
+            res += self.get_kit_lines(kit_line)
         return res
 
-    def write(self, ids, values):
+    @classmethod
+    def write(cls, lines, values):
         reset_kit = False
         if 'product' in values or 'quantity' in values or 'unit' in values:
             reset_kit = True
-        if isinstance(ids, (int, long)):
-            ids = [ids]
-        ids = ids[:]
+        lines = lines[:]
         if reset_kit:
             to_delete = []
-            for line in self.browse(ids):
-                to_delete += self.kit_tree_ids(line)
-            self.delete(to_delete)
-            ids = list(set(ids) - set(to_delete))
-        res = super(SaleLine, self).write(ids, values)
+            for line in lines:
+                to_delete += line.get_kit_lines()
+            cls.delete(to_delete)
+            lines = list(set(lines) - set(to_delete))
+        res = super(SaleLine, cls).write(lines, values)
         if reset_kit:
-            for sale_id in ids:
-                self.explode_kit(sale_id)
+            for line in lines:
+                cls.explode_kit(line)
         return res

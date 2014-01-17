@@ -1,7 +1,7 @@
-#This file is part sale_kit module for Tryton.
+#This file is part of sale_kit module for Tryton.
 #The COPYRIGHT file at the top level of this repository contains
 #the full copyright notices and license terms.
-from trytond.model import ModelView, ModelSQL, fields
+from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Bool
 
@@ -58,36 +58,36 @@ class Product:
         return True
 
 
-class ProductKitLine(ModelSQL, ModelView):
-    '''Product Kit'''
+class ProductKitLine:
     __name__ = 'product.kit.line'
 
-    def get_sale_price(self, line):
-        kit_line = self.browse(line)
-        parent = kit_line.parent
-        if parent.kit_fixed_list_price:
-            return False
-        parent_kit_lines = self.search([
-                ("product", "=", parent.id),
-                ])
-        for line in self.browse(parent_kit_lines):
-            if line in [x.id for x in line.product.kit_lines]:
-                return self.get_sale_price(self, line.id)
-        return True
-
-    def __init__(self):
-        super(ProductKitLine, self).__init__()
-        self._constraints += [
+    @classmethod
+    def __setup__(cls):
+        super(ProductKitLine, cls).__setup__()
+        cls._constraints += [
             ('check_required_salable_lines', 'salable_lines_required'),
             ]
-        self._error_messages.update({
+        cls._error_messages.update({
                 'salable_lines_required':
                     'The lines of a Kit with the flag "Explode in Sales" '
                     'checked must to be "Salables".',
                 })
 
-    def check_required_salable_lines(self, ids):
-        for kit_line in self.browse(ids):
+    def get_sale_price(self):
+        parent = self.parent
+        if parent.kit_fixed_list_price:
+            return False
+        parent_kit_lines = self.search([
+                ("product", "=", parent.id),
+                ])
+        for line in parent_kit_lines:
+            if line in [x for x in line.product.kit_lines]:
+                return line.get_sale_price()
+        return True
+
+    @classmethod
+    def check_required_salable_lines(cls, kit_lines):
+        for kit_line in cls.browse(kit_lines):
             if (kit_line.parent.explode_kit_in_sales and
                     not kit_line.product.salable):
                 return False
