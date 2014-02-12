@@ -4,7 +4,7 @@
 from decimal import Decimal
 from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
-from trytond.pyson import Eval
+from trytond.pyson import Equal, Eval
 from trytond.transaction import Transaction
 
 __all__ = ['Sale', 'SaleLine']
@@ -58,7 +58,8 @@ class SaleLine:
     @classmethod
     def __setup__(cls):
         super(SaleLine, cls).__setup__()
-        required = ~(Eval('kit_parent_line', False))
+        required = (~(Eval('kit_parent_line', False))
+            and (Equal(Eval('type'), 'line')))
         cls.unit_price.states['required'] = required
 
     @classmethod
