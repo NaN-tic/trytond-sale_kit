@@ -7,7 +7,7 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Equal, Eval
 from trytond.transaction import Transaction
 
-__all__ = ['Sale', 'SaleLine']
+__all__ = ['SaleLine']
 __metaclass__ = PoolMeta
 
 
@@ -16,33 +16,37 @@ class Sale:
 
     def create_shipment(self, shipment_type):
         pool = Pool()
+        ShipmentOut = pool.get('stock.shipment.out')
         StockMove = pool.get('stock.move')
-        context = Transaction().context.copy()
-        context['explode_kit'] = False
-        with Transaction().set_context(context):
+
+        with Transaction().set_context(explode_kit=False):
             shipments = super(Sale, self).create_shipment(shipment_type)
-        if shipments:
-            for shipment in shipments:
-                map_parent = {}
-                map_move_sales = {}
-                for move in shipment.outgoing_moves:
-                    if not move.sale:
-                        continue
-                    for sale_line in move.sale.lines:
-                        if move.product == sale_line.product:
-                            break
-                    else:
-                        continue
-                    map_parent[move.id] = (sale_line.kit_parent_line and
-                            sale_line.kit_parent_line.id or False)
-                    map_move_sales[sale_line.id] = move.id
-                    if map_parent.get(move.id):
-                        sale_parent_line = map_parent[move.id]
-                        parent_move = map_move_sales.get(sale_parent_line)
-                        data = {
-                            'kit_parent_line': parent_move,
-                            }
-                        StockMove.write([move], data)
+        if shipment_type != 'out' or not shipments:
+            return shipments
+
+        shipments_to_rewait = set()
+        for shipment in shipments:
+            map_parent = {}
+            map_move_sales = {}
+            for move in shipment.outgoing_moves:
+                if not move.sale:
+                    continue
+                sale_line = move.origin
+                map_parent[move.id] = (sale_line.kit_parent_line and
+                        sale_line.kit_parent_line.id or False)
+                map_move_sales[sale_line.id] = move.id
+                if map_parent.get(move.id):
+                    sale_parent_line = map_parent[move.id]
+                    parent_move = map_move_sales.get(sale_parent_line)
+                    data = {
+                        'kit_parent_line': parent_move,
+                        'kit_depth': sale_line.kit_depth,
+                        }
+                    StockMove.write([move], data)
+                    shipments_to_rewait.add(shipment)
+        if shipments_to_rewait:
+            with Transaction().set_user(0, set_context=True):
+                ShipmentOut.wait(list(shipments_to_rewait))
         return shipments
 
 
@@ -85,12 +89,12 @@ class SaleLine:
                 for kit_line in line.product.kit_lines:
                     product = kit_line.product
                     sale_line = SaleLine()
+                    sale_line.sale = line.sale
                     sale_line.product = product
                     sale_line.quantity = ProductUom.compute_qty(
                         kit_line.unit, kit_line.quantity, line.unit
                         ) * line.quantity
                     sale_line.unit = line.unit
-                    sale_line.sale = line.sale
                     sale_line.type = 'line'
                     sale_line.sequence = line.sequence + kit_line.sequence
                     sale_line.kit_parent_line = line
@@ -100,13 +104,34 @@ class SaleLine:
                     sale_line.description = ('%s%s' %
                         ('> ' * depth, defaults['description'])
                         if defaults.get('description') else ' ')
+
                     if kit_line.get_sale_price():
-                        sale_line.unit_price = Product.get_sale_price(
+                        unit_price = Product.get_sale_price(
                             [product], 0)[product.id]
                     else:
-                        sale_line.unit_price = Decimal('0.0')
+                        unit_price = Decimal('0.0')
+
+                    if hasattr(cls, 'gross_unit_price'):
+                        sale_line.gross_unit_price = unit_price
+                        if line.discount:
+                            sale_line.discount = line.discount
+                        change_discount_vals = sale_line.on_change_discount()
+                        for fname, fvalue in change_discount_vals.items():
+                            setattr(sale_line, fname, fvalue)
+                    else:
+                        sale_line.unit_price = unit_price
+
+                    sale_line.taxes = defaults['taxes']
                     sale_line.save()
                     result.append(sale_line)
+                if not line.product.kit_fixed_list_price:
+                    line.unit_price = Decimal('0.0')
+                    line.save()
+            elif (line.product and line.product.kit_lines and
+                    not line.product.kit_fixed_list_price):
+                line.unit_price = Product.get_sale_price([line.product],
+                    0)[line.product.id]
+                line.save()
         return result
 
     @classmethod
@@ -141,4 +166,16 @@ class SaleLine:
         res = super(SaleLine, cls).write(lines, values)
         if reset_kit:
             cls.explode_kit(lines)
+        return res
+
+    @classmethod
+    def copy(cls, lines, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        lines_to_copy = []
+        for line in lines:
+            if line.kit_parent_line is None:
+                lines_to_copy.append(line)
+        res = super(SaleLine, cls).copy(lines_to_copy, default=default)
         return res
