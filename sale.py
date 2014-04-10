@@ -84,7 +84,7 @@ class SaleLine:
         result = []
         for line in lines:
             depth = line.kit_depth + 1
-            if (line.product and line.product.kit_lines
+            if (line.product and line.product.kit and line.product.kit_lines
                     and line.product.explode_kit_in_sales):
                 for kit_line in line.product.kit_lines:
                     product = kit_line.product
