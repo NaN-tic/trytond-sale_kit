@@ -152,21 +152,22 @@ class SaleLine:
         return res
 
     @classmethod
-    def write(cls, lines, values):
-        reset_kit = False
-        if 'product' in values or 'quantity' in values or 'unit' in values:
-            reset_kit = True
-        lines = lines[:]
-        if reset_kit:
-            to_delete = []
-            for line in lines:
-                to_delete += line.get_kit_lines()
-            cls.delete(to_delete)
-            lines = list(set(lines) - set(to_delete))
-        res = super(SaleLine, cls).write(lines, values)
-        if reset_kit:
-            cls.explode_kit(lines)
-        return res
+    def write(cls, *args):
+        actions = iter(args)
+        for lines, values in zip(actions, actions):
+            reset_kit = False
+            if 'product' in values or 'quantity' in values or 'unit' in values:
+                reset_kit = True
+            lines = lines[:]
+            if reset_kit:
+                to_delete = []
+                for line in lines:
+                    to_delete += line.get_kit_lines()
+                cls.delete(to_delete)
+                lines = list(set(lines) - set(to_delete))
+            super(SaleLine, cls).write(lines, values)
+            if reset_kit:
+                cls.explode_kit(lines)
 
     @classmethod
     def copy(cls, lines, default=None):
