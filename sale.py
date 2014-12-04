@@ -22,7 +22,7 @@ class Sale:
         with Transaction().set_context(explode_kit=False):
             shipments = super(Sale, self).create_shipment(shipment_type)
         if shipment_type != 'out' or not shipments:
-            return shipments
+            return
 
         shipments_to_rewait = set()
         for shipment in shipments:
