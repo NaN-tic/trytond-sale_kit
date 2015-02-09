@@ -180,3 +180,9 @@ class SaleLine:
                 lines_to_copy.append(line)
         res = super(SaleLine, cls).copy(lines_to_copy, default=default)
         return res
+
+    def get_invoice_line(self, invoice_type):
+        lines = super(SaleLine, self).get_invoice_line(invoice_type)
+        for line in lines:
+            line.sequence = self.sequence
+        return lines
