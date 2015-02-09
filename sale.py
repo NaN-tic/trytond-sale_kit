@@ -96,7 +96,7 @@ class SaleLine:
                         ) * line.quantity
                     sale_line.unit = line.unit
                     sale_line.type = 'line'
-                    sale_line.sequence = line.sequence + kit_line.sequence
+                    sale_line.sequence = line.sequence
                     sale_line.kit_parent_line = line
                     sale_line.description = ''
                     defaults = sale_line.on_change_product()
