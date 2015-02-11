@@ -154,20 +154,23 @@ class SaleLine:
     @classmethod
     def write(cls, *args):
         actions = iter(args)
+        to_write, to_reset, to_delete = [], [], []
         for lines, values in zip(actions, actions):
             reset_kit = False
             if 'product' in values or 'quantity' in values or 'unit' in values:
                 reset_kit = True
             lines = lines[:]
             if reset_kit:
-                to_delete = []
                 for line in lines:
                     to_delete += line.get_kit_lines()
-                cls.delete(to_delete)
                 lines = list(set(lines) - set(to_delete))
-            super(SaleLine, cls).write(lines, values)
-            if reset_kit:
-                cls.explode_kit(lines)
+                to_reset.extend(line)
+            to_write.extend((lines, values))
+        if to_delete:
+            cls.delete(to_delete)
+        super(SaleLine, cls).write(*to_write)
+        if to_reset:
+            cls.explode_kit(lines)
 
     @classmethod
     def copy(cls, lines, default=None):

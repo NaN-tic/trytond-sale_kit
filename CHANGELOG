@@ -1,3 +1,5 @@
+* Improve write api to make all writes in a single call
+
 Version 3.4.0 - 2014-11-03
 
 Version 3.2.0 - 2014-05-22
