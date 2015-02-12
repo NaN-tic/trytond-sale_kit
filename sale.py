@@ -164,7 +164,7 @@ class SaleLine:
                 for line in lines:
                     to_delete += line.get_kit_lines()
                 lines = list(set(lines) - set(to_delete))
-                to_reset.append(line)
+                to_reset.extend(line)
             to_write.extend((lines, values))
         if to_delete:
             cls.delete(to_delete)
