@@ -166,9 +166,9 @@ class SaleLine:
                 lines = list(set(lines) - set(to_delete))
                 to_reset.extend(lines)
             to_write.extend((lines, values))
+        super(SaleLine, cls).write(*to_write)
         if to_delete:
             cls.delete(to_delete)
-        super(SaleLine, cls).write(*to_write)
         if to_reset:
             cls.explode_kit(lines)
 

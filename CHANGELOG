@@ -1,3 +1,4 @@
+* Fix write api to avoid writing on deleted moves
 * Improve write api to make all writes in a single call
 
 Version 3.4.0 - 2014-11-03
