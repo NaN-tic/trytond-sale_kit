@@ -77,12 +77,21 @@ class SaleLine:
         a sorted list with all the components of the product.
         If no product on Sale Line avoid to try explode kits
         '''
+        def max_sequence(sale_lines):
+            return max([sl.sequence for sl in sale_lines] +
+                [max_sequence(sl.kit_child_lines) for sl in sale_lines
+                    if sl.kit_child_lines])
+
         pool = Pool()
         Product = pool.get('product.product')
         ProductUom = pool.get('product.uom')
         SaleLine = pool.get('sale.line')
         result = []
+        sequence = lines[0].sequence if lines else 1
         for line in lines:
+            line.sequence = sequence
+            line.save()
+            sequence += 1
             depth = line.kit_depth + 1
             if (line.product and line.product.kit and line.product.kit_lines
                     and line.product.explode_kit_in_sales):
@@ -96,7 +105,7 @@ class SaleLine:
                         ) * line.quantity
                     sale_line.unit = line.unit
                     sale_line.type = 'line'
-                    sale_line.sequence = line.sequence
+                    sale_line.sequence = sequence
                     sale_line.kit_parent_line = line
                     sale_line.description = ''
                     defaults = sale_line.on_change_product()
@@ -122,8 +131,9 @@ class SaleLine:
                         sale_line.unit_price = unit_price
 
                     sale_line.taxes = defaults['taxes']
-                    sale_line.save()
-                    result.append(sale_line)
+                    sale_lines = SaleLine.create([sale_line._save_values])
+                    sequence = max_sequence(sale_lines) + 1
+                    result.append(sale_lines[0])
                 if not line.product.kit_fixed_list_price:
                     line.unit_price = Decimal('0.0')
                     line.save()
