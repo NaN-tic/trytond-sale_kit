@@ -87,7 +87,7 @@ class SaleLine:
         ProductUom = pool.get('product.uom')
         SaleLine = pool.get('sale.line')
         result = []
-        sequence = lines[0].sequence if lines else 1
+        sequence = lines[0].sequence if lines and lines[0].sequence else 1
         for line in lines:
             line.sequence = sequence
             line.save()
