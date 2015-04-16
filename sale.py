@@ -85,19 +85,18 @@ class SaleLine:
         pool = Pool()
         Product = pool.get('product.product')
         ProductUom = pool.get('product.uom')
-        SaleLine = pool.get('sale.line')
-        result = []
         sequence = lines[0].sequence if lines and lines[0].sequence else 1
+        to_write, to_create = [], []
         for line in lines:
-            line.sequence = sequence
-            line.save()
+            if line.sequence != sequence:
+                line.sequence = sequence
             sequence += 1
             depth = line.kit_depth + 1
             if (line.product and line.product.kit and line.product.kit_lines
                     and line.product.explode_kit_in_sales):
                 for kit_line in line.product.kit_lines:
                     product = kit_line.product
-                    sale_line = SaleLine()
+                    sale_line = cls()
                     sale_line.sale = line.sale
                     sale_line.product = product
                     sale_line.quantity = ProductUom.compute_qty(
@@ -131,18 +130,23 @@ class SaleLine:
                         sale_line.unit_price = unit_price
 
                     sale_line.taxes = defaults['taxes']
-                    sale_lines = SaleLine.create([sale_line._save_values])
-                    sequence = max_sequence(sale_lines) + 1
-                    result.append(sale_lines[0])
-                if not line.product.kit_fixed_list_price:
+                    to_create.append(sale_line._save_values)
+                    sequence += 1
+                if not line.product.kit_fixed_list_price and line.unit_price:
                     line.unit_price = Decimal('0.0')
-                    line.save()
             elif (line.product and line.product.kit_lines and
                     not line.product.kit_fixed_list_price):
-                line.unit_price = Product.get_sale_price([line.product],
+                unit_price = Product.get_sale_price([line.product],
                     0)[line.product.id]
-                line.save()
-        return result
+                # Avoid modifing when not required
+                if line.unit_price != unit_price:
+                    line.unit_price = unit_price
+            if line._save_values:
+                to_write.extend(([line], line._save_values))
+        if to_write:
+            cls.write(*to_write)
+        # Call super create to avoid recursion error
+        return super(SaleLine, cls).create(to_create)
 
     @classmethod
     def create(cls, values):
