@@ -184,7 +184,7 @@ class SaleLine:
         if to_delete:
             cls.delete(to_delete)
         if to_reset:
-            cls.explode_kit(lines)
+            cls.explode_kit(to_reset)
 
     @classmethod
     def copy(cls, lines, default=None):
