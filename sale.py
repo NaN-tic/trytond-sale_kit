@@ -94,7 +94,12 @@ class SaleLine:
             depth = line.kit_depth + 1
             if (line.product and line.product.kit and line.product.kit_lines
                     and line.product.explode_kit_in_sales):
-                for kit_line in line.product.kit_lines:
+                kit_lines = list(line.product.kit_lines)
+                kit_lines = zip(kit_lines, [depth] * len(kit_lines))
+                while kit_lines:
+                    kit_line = kit_lines.pop(0)
+                    depth = kit_line[1]
+                    kit_line = kit_line[0]
                     product = kit_line.product
                     sale_line = cls()
                     sale_line.sale = line.sale
@@ -131,6 +136,11 @@ class SaleLine:
 
                     sale_line.taxes = defaults['taxes']
                     to_create.append(sale_line._save_values)
+                    if product.kit_lines:
+                        product_kit_lines = list(product.kit_lines)
+                        product_kit_lines = zip(product_kit_lines,
+                            [depth + 1] * len(product_kit_lines))
+                        kit_lines = product_kit_lines + kit_lines
                     sequence += 1
                 if not line.product.kit_fixed_list_price and line.unit_price:
                     line.unit_price = Decimal('0.0')
