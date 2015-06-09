@@ -119,8 +119,10 @@ class SaleLine:
                         if defaults.get('description') else ' ')
 
                     if kit_line.get_sale_price():
-                        unit_price = Product.get_sale_price(
-                            [product], 0)[product.id]
+                        with Transaction().set_context(
+                                sale_line._get_context_sale_price()):
+                            unit_price = Product.get_sale_price(
+                                [product], 0)[product.id]
                     else:
                         unit_price = Decimal('0.0')
 
