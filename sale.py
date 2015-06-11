@@ -148,8 +148,10 @@ class SaleLine:
                     line.unit_price = Decimal('0.0')
             elif (line.product and line.product.kit_lines and
                     not line.product.kit_fixed_list_price):
-                unit_price = Product.get_sale_price([line.product],
-                    0)[line.product.id]
+                with Transaction().set_context(
+                        line._get_context_sale_price()):
+                    unit_price = Product.get_sale_price([line.product],
+                        0)[line.product.id]
                 # Avoid modifing when not required
                 if line.unit_price != unit_price:
                     line.unit_price = unit_price
