@@ -113,6 +113,8 @@ class SaleLine:
                     sale_line.kit_parent_line = line
                     sale_line.description = ''
                     defaults = sale_line.on_change_product()
+                    for fname, fvalue in defaults.items():
+                        setattr(sale_line, fname, fvalue)
                     sale_line.kit_depth = depth
                     sale_line.description = ('%s%s' %
                         ('> ' * depth, defaults['description'])
@@ -126,6 +128,7 @@ class SaleLine:
                     else:
                         unit_price = Decimal('0.0')
 
+                    # Compatibility with sale_discount module
                     if hasattr(cls, 'gross_unit_price'):
                         sale_line.gross_unit_price = unit_price
                         if line.discount:
