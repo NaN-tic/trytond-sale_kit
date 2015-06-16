@@ -168,7 +168,8 @@ class SaleLine:
     @classmethod
     def create(cls, values):
         lines = super(SaleLine, cls).create(values)
-        lines.extend(cls.explode_kit(lines))
+        if Transaction().context.get('explode_kit', True):
+            lines.extend(cls.explode_kit(lines))
         return lines
 
     def get_kit_lines(self, kit_line=None):
@@ -207,13 +208,29 @@ class SaleLine:
     def copy(cls, lines, default=None):
         if default is None:
             default = {}
-        default = default.copy()
-        lines_to_copy = []
-        for line in lines:
-            if line.kit_parent_line is None:
-                lines_to_copy.append(line)
-        res = super(SaleLine, cls).copy(lines_to_copy, default=default)
-        return res
+        default.setdefault('kit_child_lines', [])
+        new_lines, no_kit_lines = [], []
+        copied_parents = set()
+        with Transaction().set_context(explode_kit=False):
+            for line in lines:
+                if line.kit_child_lines:
+                    if not line.kit_parent_line in copied_parents:
+                        new_line, = super(SaleLine, cls).copy([line], default)
+                        new_lines.append(new_line)
+                        copied_parents.add(line.id)
+                        new_default = default.copy()
+                        new_default['kit_parent_line'] = new_line.id
+                        super(SaleLine, cls).copy(line.kit_child_lines,
+                            default=new_default)
+                elif (line.kit_parent_line and
+                        line.kit_parent_line.id in copied_parents):
+                    # Already copied by kit_child_lines
+                    continue
+                else:
+                    no_kit_lines.append(line)
+            new_lines += super(SaleLine, cls).copy(no_kit_lines,
+                default=default)
+        return new_lines
 
     def get_invoice_line(self, invoice_type):
         lines = super(SaleLine, self).get_invoice_line(invoice_type)
