@@ -88,7 +88,7 @@ class SaleLine:
         sequence = lines[0].sequence if lines and lines[0].sequence else 1
         to_write, to_create = [], []
         for line in lines:
-            if line.sequence != sequence:
+            if line.sequence != sequence and to_create:
                 line.sequence = sequence
             sequence += 1
             depth = line.kit_depth + 1
