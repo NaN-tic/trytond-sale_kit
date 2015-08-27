@@ -112,19 +112,17 @@ class SaleLine:
                     sale_line.sequence = sequence
                     sale_line.kit_parent_line = line
                     sale_line.description = ''
-                    defaults = sale_line.on_change_product()
-                    for fname, fvalue in defaults.items():
-                        setattr(sale_line, fname, fvalue)
+                    sale_line.on_change_product()
                     sale_line.kit_depth = depth
                     sale_line.description = ('%s%s' %
-                        ('> ' * depth, defaults['description'])
-                        if defaults.get('description') else ' ')
+                        ('> ' * depth, sale_line.description)
+                        if sale_line.description else ' ')
 
                     if kit_line.get_sale_price():
                         with Transaction().set_context(
                                 sale_line._get_context_sale_price()):
-                            unit_price = Product.get_sale_price(
-                                [product], 0)[product.id]
+                            prices = Product.get_sale_price([product], line.quantity)
+                            unit_price = prices[product.id]
                     else:
                         unit_price = Decimal('0.0')
 
@@ -133,13 +131,10 @@ class SaleLine:
                         sale_line.gross_unit_price = unit_price
                         if line.discount:
                             sale_line.discount = line.discount
-                        change_discount_vals = sale_line.on_change_discount()
-                        for fname, fvalue in change_discount_vals.items():
-                            setattr(sale_line, fname, fvalue)
+                        sale_line.on_change_discount()
                     else:
                         sale_line.unit_price = unit_price
 
-                    sale_line.taxes = defaults['taxes']
                     to_create.append(sale_line._save_values)
                     if product.kit_lines:
                         product_kit_lines = list(product.kit_lines)
@@ -153,8 +148,9 @@ class SaleLine:
                     not line.product.kit_fixed_list_price):
                 with Transaction().set_context(
                         line._get_context_sale_price()):
-                    unit_price = Product.get_sale_price([line.product],
-                        0)[line.product.id]
+                    prices = Product.get_sale_price([line.product], line.quantity)
+                    unit_price = prices[line.product.id]
+                    print "aqui hem de posar comptabilitat amb discount"
                 # Avoid modifing when not required
                 if line.unit_price != unit_price:
                     line.unit_price = unit_price
