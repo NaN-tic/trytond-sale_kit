@@ -15,3 +15,6 @@ def register():
 #        Sale,
         SaleLine,
         module='sale_kit', type_='model')
+    Pool.register(
+        ReturnSale,
+        module='sale_kit', type_='wizard')

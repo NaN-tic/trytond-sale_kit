@@ -7,7 +7,7 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Equal, Eval
 from trytond.transaction import Transaction
 
-__all__ = ['SaleLine']
+__all__ = ['SaleLine', 'ReturnSale']
 __metaclass__ = PoolMeta
 
 
@@ -183,17 +183,20 @@ class SaleLine:
     def write(cls, *args):
         actions = iter(args)
         to_write, to_reset, to_delete = [], [], []
-        for lines, values in zip(actions, actions):
-            reset_kit = False
-            if 'product' in values or 'quantity' in values or 'unit' in values:
-                reset_kit = True
-            lines = lines[:]
-            if reset_kit:
-                for line in lines:
-                    to_delete += line.get_kit_lines()
-                lines = list(set(lines) - set(to_delete))
-                to_reset.extend(lines)
-            to_write.extend((lines, values))
+        if Transaction().context.get('explode_kit', True):
+            for lines, values in zip(actions, actions):
+                reset_kit = False
+                if 'product' in values or 'quantity' in values or 'unit' in values:
+                    reset_kit = True
+                lines = lines[:]
+                if reset_kit:
+                    for line in lines:
+                        to_delete += line.get_kit_lines()
+                    lines = list(set(lines) - set(to_delete))
+                    to_reset.extend(lines)
+                to_write.extend((lines, values))
+        else:
+            to_write = args
         super(SaleLine, cls).write(*to_write)
         if to_delete:
             cls.delete(to_delete)
@@ -233,3 +236,11 @@ class SaleLine:
         for line in lines:
             line.sequence = self.sequence
         return lines
+
+
+class ReturnSale:
+    __name__ = 'sale.return_sale'
+
+    def do_return_(self, action):
+        with Transaction().set_context(explode_kit=False):
+            return super(ReturnSale, self).do_return_(action)
