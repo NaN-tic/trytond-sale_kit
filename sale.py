@@ -123,6 +123,9 @@ class SaleLine:
                                 sale_line._get_context_sale_price()):
                             prices = Product.get_sale_price([product], line.quantity)
                             unit_price = prices[product.id]
+                            digits = cls.unit_price.digits[1]
+                            unit_price = unit_price.quantize(
+                                Decimal(1) / 10 ** digits)
                     else:
                         unit_price = Decimal('0.0')
 
