@@ -70,6 +70,13 @@ class SaleLine:
     def default_kit_depth(cls):
         return 0
 
+    def _fill_line_from_kit_line(self, kit_line, line):
+        self.product = kit_line.product
+        self.quantity = kit_line.quantity * line.quantity
+        self.unit = kit_line.unit
+        self.type = 'line'
+        self.kit_parent_line = line
+
     @classmethod
     def explode_kit(cls, lines):
         '''
@@ -103,14 +110,8 @@ class SaleLine:
                     product = kit_line.product
                     sale_line = cls()
                     sale_line.sale = line.sale
-                    sale_line.product = product
-                    sale_line.quantity = ProductUom.compute_qty(
-                        kit_line.unit, kit_line.quantity, line.unit
-                        ) * line.quantity
-                    sale_line.unit = line.unit
-                    sale_line.type = 'line'
+                    sale_line._fill_line_from_kit_line(kit_line, line)
                     sale_line.sequence = sequence
-                    sale_line.kit_parent_line = line
                     sale_line.description = ''
                     defaults = sale_line.on_change_product()
                     for fname, fvalue in defaults.items():
@@ -142,7 +143,7 @@ class SaleLine:
                     else:
                         sale_line.unit_price = unit_price
 
-                    sale_line.taxes = defaults['taxes']
+                    sale_line.taxes = defaults.get('taxes', [])
                     to_create.append(sale_line._save_values)
                     if product.kit_lines:
                         product_kit_lines = list(product.kit_lines)
