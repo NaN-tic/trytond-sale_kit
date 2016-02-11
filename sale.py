@@ -85,6 +85,9 @@ class SaleLine:
         pool = Pool()
         Product = pool.get('product.product')
         ProductUom = pool.get('product.uom')
+
+        sale_discount = hasattr(cls, 'gross_unit_price')
+
         sequence = lines[0].sequence if lines and lines[0].sequence else 1
         to_write, to_create = [], []
         for line in lines:
@@ -130,7 +133,7 @@ class SaleLine:
                         unit_price = Decimal('0.0')
 
                     # Compatibility with sale_discount module
-                    if hasattr(cls, 'gross_unit_price'):
+                    if sale_discount:
                         sale_line.gross_unit_price = unit_price
                         if line.discount:
                             sale_line.discount = line.discount
@@ -153,10 +156,15 @@ class SaleLine:
                         line._get_context_sale_price()):
                     prices = Product.get_sale_price([line.product], line.quantity)
                     unit_price = prices[line.product.id]
-                    print "aqui hem de posar comptabilitat amb discount"
-                # Avoid modifing when not required
-                if line.unit_price != unit_price:
-                    line.unit_price = unit_price
+
+                # Compatibility with sale_discount module
+                if sale_discount:
+                    line.gross_unit_price = unit_price
+                    line.on_change_discount()
+                else:
+                    # Avoid modifing when not required
+                    if line.unit_price != unit_price:
+                        line.unit_price = unit_price
             if line._save_values:
                 to_write.extend(([line], line._save_values))
         if to_write:
