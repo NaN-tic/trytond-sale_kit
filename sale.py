@@ -70,12 +70,46 @@ class SaleLine:
     def default_kit_depth(cls):
         return 0
 
-    def _fill_line_from_kit_line(self, kit_line, line):
+    def _fill_line_from_kit_line(self, kit_line, line, depth):
+        Product = Pool().get('product.product')
         self.product = kit_line.product
         self.quantity = kit_line.quantity * line.quantity
         self.unit = kit_line.unit
+        self.unit_price = Decimal('0')
         self.type = 'line'
         self.kit_parent_line = line
+        self.description = ''
+        defaults = self.on_change_product()
+        for fname, fvalue in defaults.items():
+            setattr(self, fname, fvalue)
+        self.kit_depth = depth
+        self.description = ('%s%s' %
+            ('> ' * depth, defaults['description'])
+            if defaults.get('description') else ' ')
+
+        if kit_line.get_sale_price():
+            with Transaction().set_context(
+                    self._get_context_sale_price()):
+                unit_price = Product.get_sale_price(
+                    [kit_line.product], 0)[kit_line.product.id]
+                digits = self.__class__.unit_price.digits[1]
+                unit_price = unit_price.quantize(
+                    Decimal(1) / 10 ** digits)
+        else:
+            unit_price = Decimal('0.0')
+
+        # Compatibility with sale_discount module
+        if hasattr(self.__class__, 'gross_unit_price'):
+            self.gross_unit_price = unit_price
+            if line.discount:
+                self.discount = line.discount
+            change_discount_vals = self.on_change_discount()
+            for fname, fvalue in change_discount_vals.items():
+                setattr(self, fname, fvalue)
+        else:
+            self.unit_price = unit_price
+
+        self.taxes = defaults.get('taxes', [])
 
     @classmethod
     def explode_kit(cls, lines):
@@ -91,7 +125,6 @@ class SaleLine:
 
         pool = Pool()
         Product = pool.get('product.product')
-        ProductUom = pool.get('product.uom')
         sequence = lines[0].sequence if lines and lines[0].sequence else 1
         to_write, to_create = [], []
         for line in lines:
@@ -110,40 +143,8 @@ class SaleLine:
                     product = kit_line.product
                     sale_line = cls()
                     sale_line.sale = line.sale
-                    sale_line._fill_line_from_kit_line(kit_line, line)
+                    sale_line._fill_line_from_kit_line(kit_line, line, depth)
                     sale_line.sequence = sequence
-                    sale_line.description = ''
-                    defaults = sale_line.on_change_product()
-                    for fname, fvalue in defaults.items():
-                        setattr(sale_line, fname, fvalue)
-                    sale_line.kit_depth = depth
-                    sale_line.description = ('%s%s' %
-                        ('> ' * depth, defaults['description'])
-                        if defaults.get('description') else ' ')
-
-                    if kit_line.get_sale_price():
-                        with Transaction().set_context(
-                                sale_line._get_context_sale_price()):
-                            unit_price = Product.get_sale_price(
-                                [product], 0)[product.id]
-                            digits = cls.unit_price.digits[1]
-                            unit_price = unit_price.quantize(
-                                Decimal(1) / 10 ** digits)
-                    else:
-                        unit_price = Decimal('0.0')
-
-                    # Compatibility with sale_discount module
-                    if hasattr(cls, 'gross_unit_price'):
-                        sale_line.gross_unit_price = unit_price
-                        if line.discount:
-                            sale_line.discount = line.discount
-                        change_discount_vals = sale_line.on_change_discount()
-                        for fname, fvalue in change_discount_vals.items():
-                            setattr(sale_line, fname, fvalue)
-                    else:
-                        sale_line.unit_price = unit_price
-
-                    sale_line.taxes = defaults.get('taxes', [])
                     to_create.append(sale_line._save_values)
                     if product.kit_lines:
                         product_kit_lines = list(product.kit_lines)
