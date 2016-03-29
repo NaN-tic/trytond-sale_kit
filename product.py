@@ -9,7 +9,6 @@ from trytond.pyson import Eval, Bool
 from trytond.transaction import Transaction
 
 __all__ = ['Product', 'ProductKitLine']
-__metaclass__ = PoolMeta
 STATES = {
     'invisible': Bool(~Eval('kit')),
 }
@@ -17,6 +16,7 @@ DEPENDS = ['kit']
 
 
 class Product:
+    __metaclass__ = PoolMeta
     __name__ = "product.product"
     explode_kit_in_sales = fields.Boolean('Explode in Sales', states=STATES,
             depends=DEPENDS)
@@ -121,6 +121,7 @@ class Product:
 
 
 class ProductKitLine:
+    __metaclass__ = PoolMeta
     __name__ = 'product.kit.line'
 
     @classmethod

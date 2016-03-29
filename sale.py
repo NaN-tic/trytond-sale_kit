@@ -8,10 +8,10 @@ from trytond.pyson import Equal, Eval
 from trytond.transaction import Transaction
 
 __all__ = ['SaleLine', 'ReturnSale']
-__metaclass__ = PoolMeta
 
 
 class Sale:
+    __metaclass__ = PoolMeta
     __name__ = 'sale.sale'
 
     def create_shipment(self, shipment_type):
@@ -51,6 +51,7 @@ class Sale:
 
 
 class SaleLine:
+    __metaclass__ = PoolMeta
     __name__ = 'sale.line'
     kit_depth = fields.Integer('Depth', required=True,
         help='Depth of the line if it is part of a kit.')
@@ -253,6 +254,7 @@ class SaleLine:
 
 
 class ReturnSale:
+    __metaclass__ = PoolMeta
     __name__ = 'sale.return_sale'
 
     def do_return_(self, action):
