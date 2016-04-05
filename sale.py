@@ -115,7 +115,14 @@ class SaleLine:
                     depth = kit_line[1]
                     kit_line = kit_line[0]
                     product = kit_line.product
+
                     sale_line = cls()
+                    for key, value in sale_line.default_get(sale_line._fields.keys(),
+                            with_rec_name=False).iteritems():
+                        if value is not None:
+                            setattr(sale_line, key, value)
+                    if hasattr(line, 'party'):
+                        sale_line.party = line.party
                     sale_line.sale = line.sale
                     sale_line._fill_line_from_kit_line(kit_line, line)
                     sale_line.sequence = sequence
