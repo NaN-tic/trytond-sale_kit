@@ -178,7 +178,8 @@ class SaleLine:
     @classmethod
     def create(cls, values):
         lines = super(SaleLine, cls).create(values)
-        if Transaction().context.get('explode_kit', True):
+        if Transaction().context.get('explode_kit', True) \
+                and not Transaction().context.get('standalone', False):
             lines.extend(cls.explode_kit(lines))
         return lines
 
@@ -197,9 +198,11 @@ class SaleLine:
     def write(cls, *args):
         actions = iter(args)
         to_write, to_reset, to_delete = [], [], []
-        if Transaction().context.get('explode_kit', True):
+        if Transaction().context.get('explode_kit', True) \
+                and not Transaction().context.get('standalone', False):
             for lines, values in zip(actions, actions):
                 reset_kit = False
+                # TODO Explode kit when add new line from standalone
                 if 'product' in values or 'quantity' in values or 'unit' in values:
                     reset_kit = True
                 lines = lines[:]
