@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<!-- This file is part of product_kit module for Tryton.
-The COPYRIGHT file at the top level of this repository contains the full copyright notices and license terms. -->
-<data>
-    <xpath expr="/tree/field[@name='unit_digits']"
-            position="before">
-        <field name="kit_child_lines" tree_invisible="1"/>        
-    </xpath>
-</data>
