@@ -1,6 +1,6 @@
-#This file is part of sale_kit module for Tryton.
-#The COPYRIGHT file at the top level of this repository contains
-#the full copyright notices and license terms.
+# This file is part of sale_kit module for Tryton.
+# The COPYRIGHT file at the top level of this repository contains
+# the full copyright notices and license terms.
 from decimal import Decimal
 
 from trytond.model import fields
@@ -33,9 +33,9 @@ class Product:
     def __setup__(cls):
         super(Product, cls).__setup__()
         cls._error_messages.update({
-                'salable_product_required_in_kit':
+                'salable_product_required_in_kit': (
                     'The product "%s" has the flag "Explode in Sales" checked '
-                    'but not all the products of its lines are "Salables".',
+                    'but not all the products of its lines are "Salables".'),
                 })
 
     @classmethod
@@ -128,9 +128,9 @@ class ProductKitLine:
     def __setup__(cls):
         super(ProductKitLine, cls).__setup__()
         cls._error_messages.update({
-                'salable_lines_required':
+                'salable_lines_required': (
                     'The lines of a Kit with the flag "Explode in Sales" '
-                    'checked must to be "Salables".',
+                    'checked must to be "Salables".'),
                 })
 
     def get_sale_price(self):

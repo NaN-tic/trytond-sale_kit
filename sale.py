@@ -1,6 +1,6 @@
-#This file is part of sale_kit module for Tryton.
-#The COPYRIGHT file at the top level of this repository contains
-#the full copyright notices and license terms.
+# This file is part of sale_kit module for Tryton.
+# The COPYRIGHT file at the top level of this repository contains
+# the full copyright notices and license terms.
 from decimal import Decimal
 from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
@@ -77,7 +77,8 @@ class SaleLine:
                     product = kit_line.product
 
                     sale_line = cls()
-                    for key, value in sale_line.default_get(sale_line._fields.keys(),
+                    for key, value in sale_line.default_get(
+                            sale_line._fields.keys(),
                             with_rec_name=False).iteritems():
                         if value is not None:
                             setattr(sale_line, key, value)
@@ -95,7 +96,8 @@ class SaleLine:
                     if kit_line.get_sale_price():
                         with Transaction().set_context(
                                 sale_line._get_context_sale_price()):
-                            prices = Product.get_sale_price([product], line.quantity)
+                            prices = Product.get_sale_price(
+                                [product], line.quantity)
                             unit_price = prices[product.id]
                             digits = cls.unit_price.digits[1]
                             unit_price = unit_price.quantize(
@@ -125,7 +127,8 @@ class SaleLine:
                     not line.product.kit_fixed_list_price):
                 with Transaction().set_context(
                         line._get_context_sale_price()):
-                    prices = Product.get_sale_price([line.product], line.quantity)
+                    prices = Product.get_sale_price(
+                        [line.product], line.quantity)
                     unit_price = prices[line.product.id]
 
                 # Compatibility with sale_discount module
@@ -146,8 +149,8 @@ class SaleLine:
     @classmethod
     def create(cls, values):
         lines = super(SaleLine, cls).create(values)
-        if Transaction().context.get('explode_kit', True) \
-                and not Transaction().context.get('standalone', False):
+        if (Transaction().context.get('explode_kit', True)
+                and not Transaction().context.get('standalone', False)):
             lines.extend(cls.explode_kit(lines))
         return lines
 
@@ -166,12 +169,13 @@ class SaleLine:
     def write(cls, *args):
         actions = iter(args)
         to_write, to_reset, to_delete = [], [], []
-        if Transaction().context.get('explode_kit', True) \
-                and not Transaction().context.get('standalone', False):
+        if (Transaction().context.get('explode_kit', True)
+                and not Transaction().context.get('standalone', False)):
             for lines, values in zip(actions, actions):
                 reset_kit = False
                 # TODO Explode kit when add new line from standalone
-                if 'product' in values or 'quantity' in values or 'unit' in values:
+                if ('product' in values or 'quantity' in values
+                        or 'unit' in values):
                     reset_kit = True
                 lines = lines[:]
                 if reset_kit:
@@ -198,7 +202,7 @@ class SaleLine:
         with Transaction().set_context(explode_kit=False):
             for line in lines:
                 if line.kit_child_lines:
-                    if not line.kit_parent_line in copied_parents:
+                    if line.kit_parent_line not in copied_parents:
                         new_line, = super(SaleLine, cls).copy([line], default)
                         new_lines.append(new_line)
                         copied_parents.add(line.id)
