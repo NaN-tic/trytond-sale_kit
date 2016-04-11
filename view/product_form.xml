@@ -3,7 +3,7 @@
 The COPYRIGHT file at the top level of this repository contains the full copyright notices and license terms. -->
 <data>
     <xpath
-        expr="/form/group[@id='kit']/field[@name='stock_depends_on_kit_components']" 
+        expr="/form/notebook/page[@id='kit']/field[@name='stock_depends_on_kit_components']"
         position="after">
         <label name="explode_kit_in_sales"/>
         <field name="explode_kit_in_sales"/>
