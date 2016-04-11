@@ -12,7 +12,6 @@ def register():
         Product,
         ProductKitLine,
         InvoiceLine,
-#        Sale,
         SaleLine,
         module='sale_kit', type_='model')
     Pool.register(

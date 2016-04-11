@@ -10,46 +10,6 @@ from trytond.transaction import Transaction
 __all__ = ['SaleLine', 'ReturnSale']
 
 
-class Sale:
-    __metaclass__ = PoolMeta
-    __name__ = 'sale.sale'
-
-    def create_shipment(self, shipment_type):
-        pool = Pool()
-        ShipmentOut = pool.get('stock.shipment.out')
-        StockMove = pool.get('stock.move')
-
-        with Transaction().set_context(explode_kit=False):
-            shipments = super(Sale, self).create_shipment(shipment_type)
-        if shipment_type != 'out' or not shipments:
-            return
-
-        shipments_to_rewait = set()
-        for shipment in shipments:
-            map_parent = {}
-            map_move_sales = {}
-            for move in shipment.outgoing_moves:
-                if not move.sale:
-                    continue
-                sale_line = move.origin
-                map_parent[move.id] = (sale_line.kit_parent_line and
-                        sale_line.kit_parent_line.id or False)
-                map_move_sales[sale_line.id] = move.id
-                if map_parent.get(move.id):
-                    sale_parent_line = map_parent[move.id]
-                    parent_move = map_move_sales.get(sale_parent_line)
-                    data = {
-                        'kit_parent_line': parent_move,
-                        'kit_depth': sale_line.kit_depth,
-                        }
-                    StockMove.write([move], data)
-                    shipments_to_rewait.add(shipment)
-        if shipments_to_rewait:
-            with Transaction().set_user(0, set_context=True):
-                ShipmentOut.wait(list(shipments_to_rewait))
-        return shipments
-
-
 class SaleLine:
     __metaclass__ = PoolMeta
     __name__ = 'sale.line'
