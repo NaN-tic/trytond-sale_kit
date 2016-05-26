@@ -11,7 +11,9 @@ import ConfigParser
 
 MODULE = 'sale_kit'
 PREFIX = 'trytonspain'
-MODULE2PREFIX = {}
+MODULE2PREFIX = {
+    'stock_kit': 'trytonspain',
+    }
 
 
 def read(fname):
