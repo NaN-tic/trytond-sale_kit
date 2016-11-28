@@ -1,3 +1,6 @@
+Version 4.2.0 - 2016-11-28
+* Bug fixes (see mercurial logs for details)
+
 Version 4.0.0 - 2016-05-03
 * Fix write api to avoid writing on deleted moves
 * Improve write api to make all writes in a single call
