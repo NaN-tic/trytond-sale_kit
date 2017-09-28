@@ -35,9 +35,13 @@ class SaleLine:
         ProductUom = Pool().get('product.uom')
 
         self.product = kit_line.product
-        self.quantity = ProductUom.compute_qty(
-                kit_line.unit, kit_line.quantity, line.unit
-                ) * line.quantity
+        if kit_line.unit.category.id != line.unit.category.id:
+            quantity = kit_line.quantity * line.quantity
+        else:
+            quantity = ProductUom.compute_qty(
+                    kit_line.unit, kit_line.quantity, line.unit
+                    ) * line.quantity
+        self.quantity = quantity
         self.unit = kit_line.unit
         self.type = 'line'
         self.kit_parent_line = line
