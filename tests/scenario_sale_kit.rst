@@ -83,10 +83,11 @@ Create product::
     >>> tkit1.purchasable = True
     >>> tkit1.salable = True
     >>> tkit1.list_price = Decimal('10')
-    >>> tkit1.cost_price = Decimal('5')
     >>> tkit1.cost_price_method = 'fixed'
     >>> tkit1.account_expense = expense
     >>> tkit1.account_revenue = revenue
+    >>> pkit1, = tkit1.products
+    >>> pkit1.cost_price = Decimal('5')
     >>> tkit1.save()
     >>> pkit1, = tkit1.products
 
@@ -97,10 +98,11 @@ Create product::
     >>> tkit2.purchasable = True
     >>> tkit2.salable = True
     >>> tkit2.list_price = Decimal('10')
-    >>> tkit2.cost_price = Decimal('5')
     >>> tkit2.cost_price_method = 'fixed'
     >>> tkit2.account_expense = expense
     >>> tkit2.account_revenue = revenue
+    >>> pkit2, = tkit2.products
+    >>> pkit2.cost_price = Decimal('5')
     >>> tkit2.save()
     >>> pkit2, = tkit2.products
 
@@ -111,10 +113,11 @@ Create product::
     >>> tkit3.purchasable = True
     >>> tkit3.salable = True
     >>> tkit3.list_price = Decimal('10')
-    >>> tkit3.cost_price = Decimal('5')
     >>> tkit3.cost_price_method = 'fixed'
     >>> tkit3.account_expense = expense
     >>> tkit3.account_revenue = revenue
+    >>> pkit3, = tkit3.products
+    >>> pkit3.cost_price = Decimal('5')
     >>> tkit3.save()
     >>> pkit3, = tkit3.products
 
@@ -125,14 +128,15 @@ Create product::
     >>> template.purchasable = True
     >>> template.salable = True
     >>> template.list_price = Decimal('10')
-    >>> template.cost_price = Decimal('5')
     >>> template.cost_price_method = 'fixed'
     >>> template.account_expense = expense
     >>> template.account_revenue = revenue
-    >>> template.save()
     >>> product, = template.products
+    >>> product.cost_price = Decimal('5')
     >>> product.kit = True
     >>> product.explode_kit_in_sales = True
+    >>> template.save()
+    >>> product, = template.products
 
     >>> pkit_line1 = ProductKitLine()
     >>> product.kit_lines.append(pkit_line1)
