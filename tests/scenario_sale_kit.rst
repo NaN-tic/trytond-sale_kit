@@ -176,11 +176,11 @@ Sale products::
     >>> len(sale.lines) == 4
     True
     >>> line1, line2, line3, line4 = sale.lines
-    >>> line1.description.startswith('>')
-    False
-    >>> line2.description.startswith('>')
-    True
-    >>> line3.description.startswith('>')
-    True
-    >>> line4.description.startswith('>')
-    True
+    >>> line1.kit_depth
+    0
+    >>> line2.kit_depth
+    1
+    >>> line3.kit_depth
+    1
+    >>> line4.kit_depth
+    1

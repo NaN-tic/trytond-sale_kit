@@ -45,7 +45,6 @@ class SaleLine:
         self.unit = kit_line.unit
         self.type = 'line'
         self.kit_parent_line = line
-        self.description = ''
 
     @classmethod
     def explode_kit(cls, lines):
@@ -93,9 +92,6 @@ class SaleLine:
                     sale_line.sequence = sequence
                     sale_line.on_change_product()
                     sale_line.kit_depth = depth
-                    sale_line.description = ('%s%s' %
-                        ('> ' * depth, sale_line.description)
-                        if sale_line.description else ' ')
 
                     if kit_line.get_sale_price():
                         with Transaction().set_context(
