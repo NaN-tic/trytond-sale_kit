@@ -10,8 +10,7 @@ from trytond.transaction import Transaction
 __all__ = ['SaleLine', 'ReturnSale']
 
 
-class SaleLine:
-    __metaclass__ = PoolMeta
+class SaleLine(metaclass=PoolMeta):
     __name__ = 'sale.line'
     kit_depth = fields.Integer('Depth', required=True,
         help='Depth of the line if it is part of a kit.')
@@ -71,8 +70,8 @@ class SaleLine:
             depth = line.kit_depth + 1
             if (line.product and line.product.kit and line.product.kit_lines
                     and line.product.explode_kit_in_sales):
-                kit_lines = list(line.product.kit_lines)
-                kit_lines = zip(kit_lines, [depth] * len(kit_lines))
+                kit_lines = line.product.kit_lines
+                kit_lines = list(zip(kit_lines, [depth] * len(list(kit_lines))))
                 while kit_lines:
                     kit_line = kit_lines.pop(0)
                     depth = kit_line[1]
@@ -80,9 +79,9 @@ class SaleLine:
                     product = kit_line.product
 
                     sale_line = cls()
-                    for key, value in sale_line.default_get(
-                            sale_line._fields.keys(),
-                            with_rec_name=False).iteritems():
+                    for key, value in list(sale_line.default_get(
+                            list(sale_line._fields.keys()),
+                            with_rec_name=False).items()):
                         if value is not None:
                             setattr(sale_line, key, value)
                     if hasattr(line, 'party'):
@@ -116,9 +115,9 @@ class SaleLine:
 
                     to_create.append(sale_line._save_values)
                     if product.kit_lines:
-                        product_kit_lines = list(product.kit_lines)
+                        product_kit_lines = product.kit_lines
                         product_kit_lines = zip(product_kit_lines,
-                            [depth + 1] * len(product_kit_lines))
+                            [depth + 1] * len(list(product_kit_lines)))
                         kit_lines = product_kit_lines + kit_lines
                     sequence += 1
                 if not line.product.kit_fixed_list_price and line.unit_price:
@@ -227,8 +226,7 @@ class SaleLine:
         return lines
 
 
-class ReturnSale:
-    __metaclass__ = PoolMeta
+class ReturnSale(metaclass=PoolMeta):
     __name__ = 'sale.return_sale'
 
     def do_return_(self, action):

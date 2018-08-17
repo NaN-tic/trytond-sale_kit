@@ -15,8 +15,7 @@ STATES = {
 DEPENDS = ['kit']
 
 
-class Product:
-    __metaclass__ = PoolMeta
+class Product(metaclass=PoolMeta):
     __name__ = "product.product"
     explode_kit_in_sales = fields.Boolean('Explode in Sales', states=STATES,
             depends=DEPENDS)
@@ -120,8 +119,7 @@ class Product:
         return prices
 
 
-class ProductKitLine:
-    __metaclass__ = PoolMeta
+class ProductKitLine(metaclass=PoolMeta):
     __name__ = 'product.kit.line'
 
     @classmethod
