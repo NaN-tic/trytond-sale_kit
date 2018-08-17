@@ -66,6 +66,16 @@ Create parties::
     >>> customer = Party(name='Customer')
     >>> customer.save()
 
+Create account category::
+
+    >>> ProductCategory = Model.get('product.category')
+    >>> account_category = ProductCategory(name="Account Category")
+    >>> account_category.accounting = True
+    >>> account_category.account_expense = expense
+    >>> account_category.account_revenue = revenue
+    >>> account_category.customer_taxes.append(tax)
+    >>> account_category.save()
+
 Create product::
 
     >>> ProductUom = Model.get('product.uom')
@@ -84,8 +94,7 @@ Create product::
     >>> tkit1.salable = True
     >>> tkit1.list_price = Decimal('10')
     >>> tkit1.cost_price_method = 'fixed'
-    >>> tkit1.account_expense = expense
-    >>> tkit1.account_revenue = revenue
+    >>> tkit1.account_category = account_category
     >>> pkit1, = tkit1.products
     >>> pkit1.cost_price = Decimal('5')
     >>> tkit1.save()
@@ -99,8 +108,7 @@ Create product::
     >>> tkit2.salable = True
     >>> tkit2.list_price = Decimal('10')
     >>> tkit2.cost_price_method = 'fixed'
-    >>> tkit2.account_expense = expense
-    >>> tkit2.account_revenue = revenue
+    >>> tkit2.account_category = account_category
     >>> pkit2, = tkit2.products
     >>> pkit2.cost_price = Decimal('5')
     >>> tkit2.save()
@@ -114,8 +122,7 @@ Create product::
     >>> tkit3.salable = True
     >>> tkit3.list_price = Decimal('10')
     >>> tkit3.cost_price_method = 'fixed'
-    >>> tkit3.account_expense = expense
-    >>> tkit3.account_revenue = revenue
+    >>> tkit3.account_category = account_category
     >>> pkit3, = tkit3.products
     >>> pkit3.cost_price = Decimal('5')
     >>> tkit3.save()
@@ -129,8 +136,7 @@ Create product::
     >>> template.salable = True
     >>> template.list_price = Decimal('10')
     >>> template.cost_price_method = 'fixed'
-    >>> template.account_expense = expense
-    >>> template.account_revenue = revenue
+    >>> template.account_category = account_category
     >>> product, = template.products
     >>> product.cost_price = Decimal('5')
     >>> product.kit = True
