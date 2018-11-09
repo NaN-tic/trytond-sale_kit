@@ -115,8 +115,9 @@ class Product:
                             currency, round=False)
 
         if todo_products:
-            prices = super(Product, cls).get_sale_price(todo_products,
-                    quantity)
+            prices.update(super(Product, cls).get_sale_price(todo_products,
+                    quantity))
+
         return prices
 
 
