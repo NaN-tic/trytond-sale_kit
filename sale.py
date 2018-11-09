@@ -85,8 +85,12 @@ class SaleLine:
                             with_rec_name=False).iteritems():
                         if value is not None:
                             setattr(sale_line, key, value)
+                    # add party/sid when create new line with
+                    # sale_line_standalone or galatea_esale
                     if hasattr(line, 'party'):
                         sale_line.party = line.party
+                    if hasattr(line, 'sid'):
+                        sale_line.sid = line.sid
                     sale_line.sale = line.sale
                     sale_line._fill_line_from_kit_line(kit_line, line)
                     sale_line.sequence = sequence
