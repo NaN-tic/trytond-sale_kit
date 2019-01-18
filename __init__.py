@@ -14,6 +14,3 @@ def register():
         invoice.InvoiceLine,
         sale.SaleLine,
         module='sale_kit', type_='model')
-    Pool.register(
-        sale.ReturnSale,
-        module='sale_kit', type_='wizard')
