@@ -27,12 +27,6 @@ Create company::
     >>> _ = create_company()
     >>> company = get_company()
 
-Reload the context::
-
-    >>> User = Model.get('res.user')
-    >>> Group = Model.get('res.group')
-    >>> config._context = User.get_preferences(True, config.context)
-
 Create fiscal year::
 
     >>> fiscalyear = set_fiscalyear_invoice_sequences(
@@ -173,6 +167,7 @@ Sale products::
     >>> sale_line.product = product
     >>> sale_line.quantity = 2.0
     >>> sale.save()
+    >>> sale.click('quote')
     >>> len(sale.lines) == 4
     True
     >>> line1, line2, line3, line4 = sale.lines
@@ -184,3 +179,24 @@ Sale products::
     1
     >>> line4.kit_depth
     1
+
+Return a sale::
+
+    >>> return_sale = Wizard('sale.return_sale', [sale])
+    >>> return_sale.execute('return_')
+    >>> returned_sale, = Sale.find([
+    ...     ('state', '=', 'draft'),
+    ...     ])
+    >>> len(returned_sale.lines) == 4
+    True
+    >>> line1, line2, line3, line4 = returned_sale.lines
+    >>> line1.product.kit == True
+    True
+    >>> line1.unit_price == Decimal('10.0000')
+    True
+    >>> line2.unit_price == Decimal('0.0')
+    True
+    >>> line3.unit_price == Decimal('0.0')
+    True
+    >>> line4.unit_price == Decimal('0.0')
+    True

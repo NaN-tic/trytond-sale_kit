@@ -7,7 +7,7 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Equal, Eval
 from trytond.transaction import Transaction
 
-__all__ = ['SaleLine', 'ReturnSale']
+__all__ = ['SaleLine']
 
 
 class SaleLine:
@@ -200,28 +200,9 @@ class SaleLine:
     def copy(cls, lines, default=None):
         if default is None:
             default = {}
-        default.setdefault('kit_child_lines', [])
-        new_lines, no_kit_lines = [], []
-        copied_parents = set()
-        with Transaction().set_context(explode_kit=False):
-            for line in lines:
-                if line.kit_child_lines:
-                    if line.kit_parent_line not in copied_parents:
-                        new_line, = super(SaleLine, cls).copy([line], default)
-                        new_lines.append(new_line)
-                        copied_parents.add(line.id)
-                        new_default = default.copy()
-                        new_default['kit_parent_line'] = new_line.id
-                        super(SaleLine, cls).copy(line.kit_child_lines,
-                            default=new_default)
-                elif (line.kit_parent_line and
-                        line.kit_parent_line.id in copied_parents):
-                    # Already copied by kit_child_lines
-                    continue
-                else:
-                    no_kit_lines.append(line)
-            new_lines += super(SaleLine, cls).copy(no_kit_lines,
-                default=default)
+        default['kit_child_lines'] = []
+        lines = [x for x in lines if not x.kit_parent_line]
+        new_lines = super(SaleLine, cls).copy(lines, default=default)
         return new_lines
 
     def get_invoice_line(self):
@@ -229,12 +210,3 @@ class SaleLine:
         for line in lines:
             line.sequence = self.sequence
         return lines
-
-
-class ReturnSale:
-    __metaclass__ = PoolMeta
-    __name__ = 'sale.return_sale'
-
-    def do_return_(self, action):
-        with Transaction().set_context(explode_kit=False):
-            return super(ReturnSale, self).do_return_(action)
