@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<tryton>
+    <data group="1">
+      <record model="ir.message" id="salable_product_required_in_kit">
+          <field name="text">The product "%(product)s" has the flag "Explode in Sales" checked but not all the products of its lines are "Salables".</field>
+      </record>
+      <record model="ir.message" id="salable_lines_required">
+          <field name="text">The lines of a Kit with the flag "Explode in Sales" checked must to be "Salables".</field>
+      </record>
+    </data>
+</tryton>

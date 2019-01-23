@@ -7,6 +7,8 @@ from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Bool
 from trytond.transaction import Transaction
+from trytond.i18n import gettext
+from trytond.exceptions import UserError
 
 __all__ = ['Product', 'ProductKitLine']
 STATES = {
@@ -29,15 +31,6 @@ class Product(metaclass=PoolMeta):
         return True
 
     @classmethod
-    def __setup__(cls):
-        super(Product, cls).__setup__()
-        cls._error_messages.update({
-                'salable_product_required_in_kit': (
-                    'The product "%s" has the flag "Explode in Sales" checked '
-                    'but not all the products of its lines are "Salables".'),
-                })
-
-    @classmethod
     def validate(cls, products):
         super(Product, cls).validate(products)
         for product in products:
@@ -55,8 +48,8 @@ class Product(metaclass=PoolMeta):
                 ('parent.explode_kit_in_sales', '=', True),
                 ])
         if n_not_salable_lines:
-            self.raise_user_error('salable_product_required_in_kit',
-                (self.rec_name,))
+            raise UserError(gettext('sale_kit.salable_product_required_in_kit',
+                product=self.rec_name))
 
     @classmethod
     def get_sale_price(cls, products, quantity=0):
@@ -123,14 +116,6 @@ class Product(metaclass=PoolMeta):
 class ProductKitLine(metaclass=PoolMeta):
     __name__ = 'product.kit.line'
 
-    @classmethod
-    def __setup__(cls):
-        super(ProductKitLine, cls).__setup__()
-        cls._error_messages.update({
-                'salable_lines_required': (
-                    'The lines of a Kit with the flag "Explode in Sales" '
-                    'checked must to be "Salables".'),
-                })
 
     def get_sale_price(self):
         parent = self.parent
@@ -153,4 +138,4 @@ class ProductKitLine(metaclass=PoolMeta):
     def check_required_salable_lines(self):
         if (self.parent.explode_kit_in_sales and
                 not self.product.salable):
-            self.raise_user_error('salable_lines_required')
+            raise UserError(gettext('sale_kit.salable_lines_required'))
