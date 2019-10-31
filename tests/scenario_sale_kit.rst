@@ -41,12 +41,6 @@ Create chart of accounts::
     >>> expense = accounts['expense']
     >>> cash = accounts['cash']
 
-    >>> Journal = Model.get('account.journal')
-    >>> cash_journal, = Journal.find([('type', '=', 'cash')])
-    >>> cash_journal.credit_account = cash
-    >>> cash_journal.debit_account = cash
-    >>> cash_journal.save()
-
 Create tax::
 
     >>> tax = create_tax(Decimal('.10'))
@@ -84,7 +78,6 @@ Create product::
     >>> tkit1.name = 'product'
     >>> tkit1.default_uom = unit
     >>> tkit1.type = 'goods'
-    >>> tkit1.purchasable = True
     >>> tkit1.salable = True
     >>> tkit1.list_price = Decimal('10')
     >>> tkit1.cost_price_method = 'fixed'
@@ -98,7 +91,6 @@ Create product::
     >>> tkit2.name = 'product'
     >>> tkit2.default_uom = unit
     >>> tkit2.type = 'goods'
-    >>> tkit2.purchasable = True
     >>> tkit2.salable = True
     >>> tkit2.list_price = Decimal('10')
     >>> tkit2.cost_price_method = 'fixed'
@@ -112,7 +104,6 @@ Create product::
     >>> tkit3.name = 'product'
     >>> tkit3.default_uom = meter
     >>> tkit3.type = 'goods'
-    >>> tkit3.purchasable = True
     >>> tkit3.salable = True
     >>> tkit3.list_price = Decimal('10')
     >>> tkit3.cost_price_method = 'fixed'
@@ -126,7 +117,6 @@ Create product::
     >>> template.name = 'product'
     >>> template.default_uom = unit
     >>> template.type = 'goods'
-    >>> template.purchasable = True
     >>> template.salable = True
     >>> template.list_price = Decimal('10')
     >>> template.cost_price_method = 'fixed'
