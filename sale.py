@@ -31,9 +31,11 @@ class SaleLine(metaclass=PoolMeta):
         return 0
 
     def _fill_line_from_kit_line(self, kit_line, line):
-        ProductUom = Pool().get('product.uom')
+        pool = Pool()
+        Product = pool.get('product.product')
+        ProductUom = pool.get('product.uom')
 
-        self.product = kit_line.product
+        self.product = Product(kit_line.product)
         if kit_line.unit.category.id != line.unit.category.id:
             quantity = kit_line.quantity * line.quantity
         else:
@@ -52,12 +54,12 @@ class SaleLine(metaclass=PoolMeta):
         a sorted list with all the components of the product.
         If no product on Sale Line avoid to try explode kits
         '''
+        Product = Pool().get('product.product')
+
         def max_sequence(sale_lines):
             return max([sl.sequence for sl in sale_lines] +
                 [max_sequence(sl.kit_child_lines) for sl in sale_lines
                     if sl.kit_child_lines])
-
-        Product = Pool().get('product.product')
 
         sale_discount = hasattr(cls, 'gross_unit_price')
 
@@ -76,14 +78,11 @@ class SaleLine(metaclass=PoolMeta):
                     kit_line = kit_lines.pop(0)
                     depth = kit_line[1]
                     kit_line = kit_line[0]
-                    product = kit_line.product
+                    product = Product(kit_line.product)
 
-                    sale_line = cls()
-                    for key, value in list(sale_line.default_get(
-                            list(sale_line._fields.keys()),
-                            with_rec_name=False).items()):
-                        if value is not None:
-                            setattr(sale_line, key, value)
+                    defualt_values = cls.default_get(cls._fields.keys(),
+                            with_rec_name=False)
+                    sale_line = cls(**defualt_values)
                     # add party/sid when create new line with
                     # sale_line_standalone or galatea_esale
                     if hasattr(line, 'party'):
@@ -209,4 +208,3 @@ class SaleLine(metaclass=PoolMeta):
         for line in lines:
             line.sequence = self.sequence
         return lines
-
