@@ -119,8 +119,8 @@ class SaleLine(metaclass=PoolMeta):
                     to_create.append(sale_line._save_values)
                     if product.kit_lines:
                         product_kit_lines = product.kit_lines
-                        product_kit_lines = zip(product_kit_lines,
-                            [depth + 1] * len(list(product_kit_lines)))
+                        product_kit_lines = list(zip(product_kit_lines,
+                            [depth + 1] * len(list(product_kit_lines))))
                         kit_lines = product_kit_lines + kit_lines
                     sequence += 1
                 if not line.product.kit_fixed_list_price and line.unit_price:
@@ -188,9 +188,12 @@ class SaleLine(metaclass=PoolMeta):
                 to_write.extend((lines, values))
         else:
             to_write = args
-        super(SaleLine, cls).write(*to_write)
+        if to_write:
+            super(SaleLine, cls).write(*to_write)
+        super(SaleLine, cls).write(*args)
         if to_delete:
             cls.delete(to_delete)
+        to_reset = list(set(to_reset) - set(to_delete))
         if to_reset:
             cls.explode_kit(to_reset)
 
