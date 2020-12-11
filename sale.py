@@ -199,7 +199,9 @@ class SaleLine(metaclass=PoolMeta):
         if default is None:
             default = {}
         default['kit_child_lines'] = []
-        lines = [x for x in lines if not x.kit_parent_line]
+        # third modules not check kit_parent_line to copy
+        if Transaction().context.get('check_kit_parent_line', True):
+            lines = [x for x in lines if not x.kit_parent_line]
         new_lines = super(SaleLine, cls).copy(lines, default=default)
         return new_lines
 
