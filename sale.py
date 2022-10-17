@@ -6,6 +6,7 @@ from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Equal, Eval
 from trytond.transaction import Transaction
+from trytond.modules.product import round_price
 
 __all__ = ['SaleLine']
 
@@ -100,10 +101,8 @@ class SaleLine(metaclass=PoolMeta):
                                 sale_line._get_context_sale_price()):
                             prices = Product.get_sale_price(
                                 [product], line.quantity)
-                            unit_price = prices[product.id]
-                            digits = cls.unit_price.digits[1]
-                            unit_price = unit_price.quantize(
-                                Decimal(1) / 10 ** digits)
+                            unit_price = prices.get(product.id, Decimal('0.0'))
+                            unit_price = round_price(unit_price)
                     else:
                         unit_price = Decimal('0.0')
 
