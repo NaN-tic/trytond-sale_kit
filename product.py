@@ -19,8 +19,7 @@ DEPENDS = ['kit']
 
 class Product(metaclass=PoolMeta):
     __name__ = "product.product"
-    explode_kit_in_sales = fields.Boolean('Explode in Sales', states=STATES,
-            depends=DEPENDS)
+    explode_kit_in_sales = fields.Boolean('Explode in Sales', states=STATES)
 
     @staticmethod
     def default_explode_kit_in_sales():
