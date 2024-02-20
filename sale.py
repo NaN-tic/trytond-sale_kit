@@ -36,16 +36,18 @@ class SaleLine(metaclass=PoolMeta):
         Product = pool.get('product.product')
         ProductUom = pool.get('product.uom')
 
+        self.type = 'line'
         self.product = Product(kit_line.product)
+        self.on_change_product()
         if kit_line.unit.category.id != line.unit.category.id:
             quantity = kit_line.quantity * line.quantity
         else:
             quantity = ProductUom.compute_qty(
                     kit_line.unit, kit_line.quantity, line.unit
                     ) * line.quantity
-        self.quantity = quantity
         self.unit = kit_line.unit
-        self.type = 'line'
+        self.quantity = quantity
+        self.on_change_quantity()
         self.kit_parent_line = line
 
     @classmethod
