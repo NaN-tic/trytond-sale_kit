@@ -103,10 +103,10 @@ class SaleLine(metaclass=PoolMeta):
                                 sale_line._get_context_sale_price()):
                             prices = Product.get_sale_price(
                                 [product], line.quantity)
-                            unit_price = prices.get(product.id, Decimal('0.0'))
+                            unit_price = prices.get(product.id, Decimal(0))
                             unit_price = round_price(unit_price)
                     else:
-                        unit_price = Decimal('0.0')
+                        unit_price = Decimal(0)
 
                     # Compatibility with sale_discount module
                     if sale_discount:
@@ -125,7 +125,7 @@ class SaleLine(metaclass=PoolMeta):
                         kit_lines = product_kit_lines + kit_lines
                     sequence += 1
                 if not line.product.kit_fixed_list_price and line.unit_price:
-                    line.unit_price = Decimal('0.0')
+                    line.unit_price = Decimal(0)
             elif (line.product and line.product.kit_lines and
                     not line.product.kit_fixed_list_price):
                 with Transaction().set_context(

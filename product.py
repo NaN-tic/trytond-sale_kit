@@ -83,10 +83,10 @@ class Product(metaclass=PoolMeta):
                 todo_products.append(product)
                 continue
             if product.explode_kit_in_sales:
-                prices[product.id] = Decimal('0.0')
+                prices[product.id] = Decimal(0)
                 continue
 
-            product_price = Decimal('0.0')
+            product_price = Decimal(0)
             for kit_line in product.kit_lines:
                 with Transaction().set_context(uom=kit_line.unit):
                     product_price += (cls.get_sale_price([kit_line.product],
