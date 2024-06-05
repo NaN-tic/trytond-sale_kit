@@ -78,10 +78,10 @@ class Product(metaclass=PoolMeta):
 
         user = User(Transaction().user)
 
-        todo_products = []
+        todo_products = set()
         for product in products:
             if not product.kit or product.kit_fixed_list_price:
-                todo_products.append(product)
+                todo_products.add(product)
                 continue
             if product.explode_kit_in_sales:
                 prices[product.id] = Decimal('0.0')
