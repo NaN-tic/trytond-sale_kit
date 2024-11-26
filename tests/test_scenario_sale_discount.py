@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
     def test(self):
 
         # Install sale_kit
-        activate_modules('sale_kit')
+        activate_modules(['sale_kit', 'sale_discount'])
 
         # Create company
         _ = create_company()
@@ -147,6 +147,10 @@ class Test(unittest.TestCase):
         sale.lines.append(sale_line)
         sale_line.product = product
         sale_line.quantity = 2.0
+        self.assertEqual(sale_line.base_price, sale_line.unit_price)
+        sale_line.discount_rate = Decimal(0.1)
+        self.assertEqual(sale_line.base_price, Decimal('10.0000'))
+        self.assertEqual(sale_line.unit_price, Decimal('9.0000'))
         sale.save()
         sale.click('quote')
         self.assertEqual(len(sale.lines), 4)
@@ -157,9 +161,13 @@ class Test(unittest.TestCase):
         self.assertEqual(line3.kit_depth, 1)
         self.assertEqual(line4.kit_depth, 1)
         self.assertEqual(line1.product.kit, True)
-        self.assertEqual(line1.unit_price, Decimal('10.0000'))
+        self.assertEqual(line1.base_price, Decimal('10.0000'))
+        self.assertEqual(line1.unit_price, Decimal('9.0000'))
+        self.assertEqual(line2.base_price, Decimal('0.0'))
         self.assertEqual(line2.unit_price, Decimal('0.0'))
+        self.assertEqual(line3.base_price, Decimal('0.0'))
         self.assertEqual(line3.unit_price, Decimal('0.0'))
+        self.assertEqual(line4.unit_price, Decimal('0.0'))
         self.assertEqual(line4.unit_price, Decimal('0.0'))
 
         # Return a sale
@@ -167,12 +175,16 @@ class Test(unittest.TestCase):
         return_sale.execute('return_')
         returned_sale, = Sale.find([
             ('state', '=', 'draft'),
-        ])
+            ])
         self.assertEqual(len(returned_sale.lines), 4)
 
         line1, line2, line3, line4 = returned_sale.lines
         self.assertEqual(line1.product.kit, True)
-        self.assertEqual(line1.unit_price, Decimal('10.0000'))
+        self.assertEqual(line1.base_price, Decimal('10.0000'))
+        self.assertEqual(line1.unit_price, Decimal('9.0000'))
+        self.assertEqual(line2.base_price, Decimal('0.0'))
         self.assertEqual(line2.unit_price, Decimal('0.0'))
+        self.assertEqual(line3.base_price, Decimal('0.0'))
         self.assertEqual(line3.unit_price, Decimal('0.0'))
+        self.assertEqual(line4.unit_price, Decimal('0.0'))
         self.assertEqual(line4.unit_price, Decimal('0.0'))
