@@ -8,8 +8,6 @@ from trytond.pyson import Equal, Eval
 from trytond.transaction import Transaction
 from trytond.modules.product import round_price
 
-__all__ = ['SaleLine']
-
 
 class SaleLine(metaclass=PoolMeta):
     __name__ = 'sale.line'
@@ -64,7 +62,7 @@ class SaleLine(metaclass=PoolMeta):
                 [max_sequence(sl.kit_child_lines) for sl in sale_lines
                     if sl.kit_child_lines])
 
-        sale_discount = hasattr(cls, 'gross_unit_price')
+        has_sale_discount = hasattr(cls, 'base_price')
 
         sequence = lines[0].sequence if lines and lines[0].sequence else 1
         to_write, to_create = [], []
@@ -108,12 +106,18 @@ class SaleLine(metaclass=PoolMeta):
                     else:
                         unit_price = Decimal(0)
 
+                    sale_line.unit_price = unit_price
+
                     # Compatibility with sale_discount module
-                    if sale_discount:
-                        sale_line.gross_unit_price = unit_price
-                        if line.discount:
-                            sale_line.discount = line.discount
-                        sale_line.on_change_discount()
+                    if has_sale_discount:
+                        sale_line.base_price = unit_price
+                        sale_line.unit_price = unit_price
+                        if line.discount_rate is not None:
+                            sale_line.discount_rate = line.discount_rate
+                            sale_line.on_change_discount_rate()
+                        elif line.discount_amount is not None:
+                            sale_line.discount_amount = line.discount_amount
+                            sale_line.on_change_discount_amount()
                     else:
                         sale_line.unit_price = unit_price
 
@@ -135,9 +139,15 @@ class SaleLine(metaclass=PoolMeta):
                     unit_price = prices[line.product.id]
 
                 # Compatibility with sale_discount module
-                if sale_discount:
-                    line.gross_unit_price = unit_price
-                    line.on_change_discount()
+                if has_sale_discount:
+                    sale_line.base_price = unit_price
+                    sale_line.unit_price = unit_price
+                    if line.discount_rate is not None:
+                        sale_line.discount_rate = line.discount_rate
+                        sale_line.on_change_discount_rate()
+                    elif line.discount_amount is not None:
+                        sale_line.discount_amount = line.discount_amount
+                        sale_line.on_change_discount_amount()
                 else:
                     # Avoid modifing when not required
                     if line.unit_price != unit_price:
