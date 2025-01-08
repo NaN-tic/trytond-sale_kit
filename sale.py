@@ -121,7 +121,7 @@ class SaleLine(metaclass=PoolMeta):
                     else:
                         sale_line.unit_price = unit_price
 
-                    to_create.append(sale_line._save_values)
+                    to_create.append(sale_line._save_values())
                     if product.kit_lines:
                         product_kit_lines = product.kit_lines
                         product_kit_lines = list(zip(product_kit_lines,
@@ -152,8 +152,7 @@ class SaleLine(metaclass=PoolMeta):
                     # Avoid modifing when not required
                     if line.unit_price != unit_price:
                         line.unit_price = unit_price
-            if line._save_values:
-                to_write.extend(([line], line._save_values))
+            to_write.extend(([line], line._save_values()))
         if to_write:
             cls.write(*to_write)
         # Call super create to avoid recursion error
