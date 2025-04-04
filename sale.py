@@ -101,8 +101,8 @@ class SaleLine(metaclass=PoolMeta):
                                 sale_line._get_context_sale_price()):
                             prices = Product.get_sale_price(
                                 [product], line.quantity)
-                            unit_price = prices.get(product.id, Decimal(0))
-                            unit_price = round_price(unit_price)
+                            unit_price = round_price(
+                                prices.get(product.id, Decimal(0)))
                     else:
                         unit_price = Decimal(0)
 
@@ -136,7 +136,8 @@ class SaleLine(metaclass=PoolMeta):
                         line._get_context_sale_price()):
                     prices = Product.get_sale_price(
                         [line.product], line.quantity)
-                    unit_price = prices[line.product.id]
+                    unit_price = round_price(
+                        prices.get(line.product.id, Decimal(0)))
 
                 # Compatibility with sale_discount module
                 if has_sale_discount:
