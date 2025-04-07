@@ -140,14 +140,8 @@ class SaleLine(metaclass=PoolMeta):
 
                 # Compatibility with sale_discount module
                 if has_sale_discount:
-                    sale_line.base_price = unit_price
-                    sale_line.unit_price = unit_price
-                    if line.discount_rate is not None:
-                        sale_line.discount_rate = line.discount_rate
-                        sale_line.on_change_discount_rate()
-                    elif line.discount_amount is not None:
-                        sale_line.discount_amount = line.discount_amount
-                        sale_line.on_change_discount_amount()
+                    line.base_price = unit_price
+                    line.unit_price = unit_price
                 else:
                     # Avoid modifing when not required
                     if line.unit_price != unit_price:
