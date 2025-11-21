@@ -122,7 +122,7 @@ class SaleLine(metaclass=PoolMeta):
                         sale_line.unit_price = unit_price
 
                     to_create.append(sale_line._save_values())
-                    if product.kit_lines:
+                    if product.kit and product.kit_lines:
                         product_kit_lines = product.kit_lines
                         product_kit_lines = list(zip(product_kit_lines,
                             [depth + 1] * len(list(product_kit_lines))))
