@@ -8,7 +8,7 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Bool
 from trytond.transaction import Transaction
 from trytond.i18n import gettext
-from trytond.exceptions import UserError
+from trytond.model.exceptions import ValidationError
 
 STATES = {
     'invisible': Bool(~Eval('kit')),
@@ -46,7 +46,7 @@ class Product(metaclass=PoolMeta):
                 ('parent.explode_kit_in_sales', '=', True),
                 ])
         if n_not_salable_lines:
-            raise UserError(gettext('sale_kit.salable_product_required_in_kit',
+            raise ValidationError(gettext('sale_kit.salable_product_required_in_kit',
                 product=self.rec_name))
 
     @classmethod
@@ -136,4 +136,4 @@ class ProductKitLine(metaclass=PoolMeta):
     def check_required_salable_lines(self):
         if (self.parent.explode_kit_in_sales and
                 not self.product.salable):
-            raise UserError(gettext('sale_kit.salable_lines_required'))
+            raise ValidationError(gettext('sale_kit.salable_lines_required'))
