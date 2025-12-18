@@ -88,9 +88,11 @@ class Product(metaclass=PoolMeta):
             product_price = Decimal(0)
             for kit_line in product.kit_lines:
                 with Transaction().set_context(uom=kit_line.unit):
-                    product_price += (cls.get_sale_price([kit_line.product],
-                            quantity=kit_line.quantity)[kit_line.product.id] *
-                        Decimal(str(kit_line.quantity)))
+                    price = cls.get_sale_price([kit_line.product],
+                            quantity=kit_line.quantity)[kit_line.product.id]
+                    if price:
+                        price *= Decimal(str(kit_line.quantity))
+                        product_price += price
             prices[product.id] = product_price
 
             if uom:
