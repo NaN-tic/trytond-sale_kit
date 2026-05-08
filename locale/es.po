@@ -1,14 +1,21 @@
 #
+# SPDX-FileCopyrightText: 2026 juanjo <juanjo.garcia@nan-tic.com>
 msgid ""
-msgstr "Content-Type: text/plain; charset=utf-8\n"
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Last-Translator: juanjo <juanjo.garcia@nan-tic.com>\n"
+"PO-Revision-Date: 2026-05-08 09:22+0000\n"
+"Project-Id-Version: \n"
+"Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
+"Language: ca_ES\n"
+"Content-Transfer-Encoding: 8bit\n"
+"MIME-Version: 1.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.04.0\n"
 
 msgctxt "field:product.product,explode_kit_in_sales:"
 msgid "Explode in Sales"
 msgstr "Expandir en las ventas"
-
-msgctxt "field:product.product,kit_fixed_list_price:"
-msgid "Fixed List Price"
-msgstr "Precio fijo"
 
 msgctxt "field:sale.line,kit_child_lines:"
 msgid "Lines in the kit"
@@ -42,3 +49,20 @@ msgstr "Profundidad de la líniea si forma parte de un kit."
 msgctxt "help:sale.line,kit_parent_line:"
 msgid "The kit that contains this product."
 msgstr "El kit que contiene este producto."
+
+msgctxt "model:ir.message,text:salable_lines_required"
+msgid ""
+"The lines of a Kit with the flag \"Explode in Sales\" checked must to be "
+"\"Salables\"."
+msgstr ""
+"Las líneas de un Kit con la marca \"Expandir en las ventas\" marcada deben "
+"ser \"Vendibles\"."
+
+#, python-format
+msgctxt "model:ir.message,text:salable_product_required_in_kit"
+msgid ""
+"The product \"%(product)s\" has the flag \"Explode in Sales\" checked but "
+"not all the products of its lines are \"Salables\"."
+msgstr ""
+"El producto \"%(product)s\" tiene marcada la marca \"Expandir en las ventas\","
+" pero no todos los productos de sus líneas son \"Vendibles\"."
