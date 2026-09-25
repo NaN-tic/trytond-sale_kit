@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<tryton>
+    <data>
+        <record model="ir.message" id="msg_component_shipment_control">
+            <field name="text">Manage component shipments through their kit shipment "%(shipment)s".</field>
+        </record>
+        <record model="ir.message" id="msg_kit_move_change">
+            <field name="text">Reset the kit shipment to draft before changing its product or unit, or to waiting before changing its quantity.</field>
+        </record>
+        <record model="ir.message" id="msg_kit_reservation">
+            <field name="text">%(kit)s: %(requested)s requested, %(reserved)s reserved as complete kits. Ignore the unassigned quantities to send a partial shipment.</field>
+        </record>
+        <record model="ir.ui.view" id="shipment_assign_partial_view_form">
+            <field name="model">stock.shipment.assign.partial</field>
+            <field name="inherit" ref="stock.shipment_assign_partial_view_form"/>
+            <field name="name">shipment_assign_partial_form</field>
+        </record>
+        <record model="ir.ui.view" id="shipment_out_view_form">
+            <field name="model">stock.shipment.out</field>
+            <field name="inherit" ref="stock.shipment_out_view_form"/>
+            <field name="name">shipment_out_form</field>
+        </record>
+        <record model="ir.ui.view" id="sale_view_form">
+            <field name="model">sale.sale</field>
+            <field name="inherit" ref="sale.sale_view_form"/>
+            <field name="name">sale_form</field>
+        </record>
+    </data>
+</tryton>

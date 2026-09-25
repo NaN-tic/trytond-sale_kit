@@ -5,6 +5,7 @@ from trytond.pool import Pool
 from . import product
 from . import invoice
 from . import sale
+from . import stock
 
 
 def register():
@@ -13,4 +14,11 @@ def register():
         product.ProductKitLine,
         invoice.InvoiceLine,
         sale.SaleLine,
+        sale.Sale,
+        stock.Move,
+        stock.ShipmentOut,
+        stock.AssignPartial,
         module='sale_kit', type_='model')
+    Pool.register(
+        stock.Assign,
+        module='sale_kit', type_='wizard')

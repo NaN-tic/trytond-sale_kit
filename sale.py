@@ -9,6 +9,18 @@ from trytond.transaction import Transaction
 from trytond.modules.product import round_price
 
 
+class Sale(metaclass=PoolMeta):
+    __name__ = 'sale.sale'
+
+    kit_component_shipments = fields.Function(fields.Many2Many(
+            'stock.shipment.out', None, None, "Component Shipments"),
+        'get_kit_component_shipments')
+
+    def get_kit_component_shipments(self, name):
+        return [child.id for shipment in self.shipments
+            for child in shipment.kit_component_shipments]
+
+
 class SaleLine(metaclass=PoolMeta):
     __name__ = 'sale.line'
     kit_depth = fields.Integer('Depth', required=True,
