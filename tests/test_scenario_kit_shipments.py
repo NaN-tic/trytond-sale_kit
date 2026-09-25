@@ -46,7 +46,7 @@ class TestKitShipments(unittest.TestCase):
     def make_sale(self, product, quantity):
         Sale = Model.get('sale.sale')
         sale = Sale(party=self.customer, payment_term=self.payment_term,
-            invoice_method='shipment', warehouse=self.warehouse)
+            invoice_method='fulfillment', warehouse=self.warehouse)
         line = sale.lines.new()
         line.product = product
         line.quantity = quantity
