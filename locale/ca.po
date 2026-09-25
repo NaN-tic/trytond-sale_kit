@@ -27,7 +27,7 @@ msgstr "Profunditat"
 
 msgctxt "field:sale.line,kit_parent_line:"
 msgid "Parent Kit Line"
-msgstr "Pare de la línia del kit."
+msgstr "Línia pare del kit"
 
 msgctxt "help:product.product,kit_fixed_list_price:"
 msgid ""
@@ -55,9 +55,8 @@ msgid ""
 "The lines of a Kit with the flag \"Explode in Sales\" checked must to be "
 "\"Salables\"."
 msgstr ""
-"Les línies d'un Kit amb la marca \"Expandeix a les vendes\" marcada han de ser"
-" "
-"\"Salables\"."
+"Les línies d'un kit amb la casella \"Expandeix a les vendes\" marcada han de "
+"ser vendibles."
 
 #, python-format
 msgctxt "model:ir.message,text:salable_product_required_in_kit"
@@ -65,6 +64,61 @@ msgid ""
 "The product \"%(product)s\" has the flag \"Explode in Sales\" checked but "
 "not all the products of its lines are \"Salables\"."
 msgstr ""
-"El producte \"%(product)s\" té marcada la casella \"Expandeix a les vendes\" p"
-"erò "
-"no tots els productes de les seves línies són \"Vendibles\"."
+"El producte \"%(product)s\" té marcada la casella \"Expandeix a les vendes\", "
+"però no tots els productes de les seves línies són vendibles."
+
+msgctxt "field:sale.sale,kit_component_shipments:"
+msgid "Component Shipments"
+msgstr "Albarans de components"
+
+msgctxt "field:stock.shipment.out,kit_component_shipments:"
+msgid "Component Shipments"
+msgstr "Albarans de components"
+
+msgctxt "field:stock.shipment.out,kit_parent_shipment:"
+msgid "Kit Shipment"
+msgstr "Albarà del kit"
+
+msgctxt "field:stock.move,kit_parent_move:"
+msgid "Kit Move"
+msgstr "Moviment del kit"
+
+msgctxt "field:stock.move,kit_component_quantity:"
+msgid "Component Quantity per Kit Unit"
+msgstr "Quantitat del component per unitat de kit"
+
+msgctxt "field:stock.shipment.assign.partial,kit_summary:"
+msgid "Kit Reservations"
+msgstr "Reserves de kits"
+
+#, python-format
+msgctxt "model:ir.message,text:msg_component_shipment_control"
+msgid "Manage component shipments through their kit shipment \"%(shipment)s\"."
+msgstr ""
+"Gestioneu els albarans de components des de l'albarà del kit \"%(shipment)s\"."
+
+msgctxt "model:ir.message,text:msg_kit_move_change"
+msgid ""
+"Reset the kit shipment to draft before changing its product or unit, or to "
+"waiting before changing its quantity."
+msgstr ""
+"Torneu l'albarà del kit a esborrany abans de canviar-ne el producte o la "
+"unitat, o a pendent abans de canviar-ne la quantitat."
+
+#, python-format
+msgctxt "model:ir.message,text:msg_kit_reservation"
+msgid ""
+"%(kit)s: %(requested)s requested, %(reserved)s reserved as complete kits. "
+"Ignore the unassigned quantities to send a partial shipment."
+msgstr ""
+"%(kit)s: quantitat sol·licitada: %(requested)s; quantitat reservada en kits "
+"complets: %(reserved)s. Ignoreu les quantitats no reservades per fer un "
+"enviament parcial."
+
+msgctxt "view:sale.sale:"
+msgid "Kit Components"
+msgstr "Components del kit"
+
+msgctxt "view:stock.shipment.out:"
+msgid "Kit Components"
+msgstr "Components del kit"

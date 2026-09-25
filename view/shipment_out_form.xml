@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<data>
+    <xpath expr="//notebook" position="inside">
+        <page string="Kit Components" id="kit">
+            <label name="kit_parent_shipment"/>
+            <field name="kit_parent_shipment"/>
+            <field name="kit_component_shipments" colspan="4"/>
+        </page>
+    </xpath>
+</data>
