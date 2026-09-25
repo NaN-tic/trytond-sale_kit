@@ -1,5 +1,6 @@
 from proteus import Model, Wizard
 from trytond.model.exceptions import AccessError
+from trytond.model.modelview import AccessButtonError
 from trytond.modules.sale_kit.tests import test_scenario_kit_shipments
 from trytond.tests.test_tryton import drop_db
 from trytond.tests.tools import activate_modules
@@ -30,7 +31,7 @@ class TestKitProtection(test_scenario_kit_shipments.TestKitShipments):
                 Shipment._proxy.write([child_id], values, context)
         for action in ['draft', 'wait', 'assign_try', 'assign_force',
                 'pick', 'pack', 'ship', 'do', 'cancel']:
-            with self.assertRaises(AccessError):
+            with self.assertRaises((AccessError, AccessButtonError)):
                 getattr(Shipment._proxy, action)([child_id], context)
         with self.assertRaises(AccessError):
             Shipment._proxy.delete([child_id], context)
@@ -54,7 +55,7 @@ class TestKitProtection(test_scenario_kit_shipments.TestKitShipments):
                         ('draft', 'do'),
                         ('draft', 'cancel'), ('assigned', 'draft'),
                         ('assigned', 'do'), ('assigned', 'cancel')}:
-                    with self.assertRaises(AccessError):
+                    with self.assertRaises((AccessError, AccessButtonError)):
                         getattr(Move._proxy, action)([move.id], context)
             with self.assertRaises(AccessError):
                 Move._proxy.delete([move.id], context)
