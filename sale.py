@@ -93,9 +93,9 @@ class SaleLine(metaclass=PoolMeta):
                     kit_line = kit_line[0]
                     product = Product(kit_line.product)
 
-                    defualt_values = cls.default_get(cls._fields.keys(),
-                            with_rec_name=False)
-                    sale_line = cls(**defualt_values)
+                    default_values = cls.default_get(
+                        cls._fields.keys(), with_rec_name=False)
+                    sale_line = cls(**default_values)
                     # add party/sid when create new line with
                     # sale_line_standalone or galatea_esale
                     if hasattr(line, 'party'):
@@ -133,7 +133,11 @@ class SaleLine(metaclass=PoolMeta):
                     else:
                         sale_line.unit_price = unit_price
 
-                    to_create.append(sale_line._save_values())
+                    values = sale_line._save_values()
+                    to_create.append({
+                            name: value for name, value in values.items()
+                            if not cls._fields[name].readonly
+                            })
                     if product.kit and product.kit_lines:
                         product_kit_lines = product.kit_lines
                         product_kit_lines = list(zip(product_kit_lines,

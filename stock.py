@@ -35,6 +35,12 @@ def kit_shipment_action(func):
     return wrapper
 
 
+def _modification_pairs(mode, records, values):
+    if mode == 'create':
+        return list(zip(records, values or ([{}] * len(records))))
+    return [(record, values or {}) for record in records]
+
+
 def protect_component_fields(cls, parent_field):
     protected = Bool(Eval(parent_field))
     for name in dir(cls):
@@ -80,23 +86,28 @@ class Move(metaclass=PoolMeta):
 
     @classmethod
     def check_modification(cls, mode, moves, values=None, external=False):
+        modifications = _modification_pairs(mode, moves, values)
         cls._check_kit_control(moves)
-        if values:
-            cls._check_kit_control([cls(**{name: values[name]
-                        for name in ('shipment', 'kit_parent_move')
-                        if name in values})])
-        super().check_modification(mode, moves, values, external=external)
+        for _, modification_values in modifications:
+            relation_values = {
+                name: modification_values[name]
+                for name in ('shipment', 'kit_parent_move')
+                if name in modification_values}
+            if relation_values:
+                cls._check_kit_control([cls(**relation_values)])
+        super().check_modification(
+            mode, moves, values=values, external=external)
         if not external:
             return
         Shipment = Pool().get('stock.shipment.out')
-        for move in moves:
+        for move, modification_values in modifications:
             if (isinstance(move.shipment, Shipment)
                     and move.shipment.kit_component_shipments
                     and move.product.kit
                     and (mode == 'delete'
-                        or {'product', 'unit'} & set(values or {})
+                        or {'product', 'unit'} & set(modification_values)
                         or (move.shipment.state != 'waiting'
-                            and 'quantity' in (values or {})))):
+                            and 'quantity' in modification_values))):
                 raise AccessError(gettext('sale_kit.msg_kit_move_change'))
 
     @classmethod
@@ -123,11 +134,14 @@ class ShipmentOut(metaclass=PoolMeta):
     @classmethod
     def check_modification(cls, mode, shipments, values=None, external=False):
         cls._check_kit_control(shipments)
-        if values and values.get('kit_parent_shipment'):
-            cls._check_kit_control([cls(
-                        kit_parent_shipment=values['kit_parent_shipment'])])
+        for _, modification_values in _modification_pairs(
+                mode, shipments, values):
+            if modification_values.get('kit_parent_shipment'):
+                shipment = cls(kit_parent_shipment=
+                    modification_values['kit_parent_shipment'])
+                cls._check_kit_control([shipment])
         super().check_modification(
-            mode, shipments, values, external=external)
+            mode, shipments, values=values, external=external)
 
     @classmethod
     def _check_kit_control(cls, shipments):
