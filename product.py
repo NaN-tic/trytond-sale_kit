@@ -9,11 +9,23 @@ from trytond.pyson import Eval, Bool
 from trytond.transaction import Transaction
 from trytond.i18n import gettext
 from trytond.model.exceptions import ValidationError
+from trytond.modules.product import round_price
 
 STATES = {
     'invisible': Bool(~Eval('kit')),
 }
 DEPENDS = ['kit']
+
+
+class Template(metaclass=PoolMeta):
+    __name__ = 'product.template'
+
+    @classmethod
+    def validate(cls, templates):
+        Product = Pool().get('product.product')
+        Product.ensure_kit_consumable([
+                p for template in templates for p in template.products])
+        super().validate(templates)
 
 
 class Product(metaclass=PoolMeta):
@@ -30,9 +42,44 @@ class Product(metaclass=PoolMeta):
 
     @classmethod
     def validate(cls, products):
+        cls.ensure_kit_consumable(products)
         super(Product, cls).validate(products)
         for product in products:
             product.check_required_salable_products_in_kits()
+
+    @classmethod
+    def ensure_kit_consumable(cls, products):
+        Template = Pool().get('product.template')
+        templates = {p.template for p in products
+            if p.kit and p.stock_depends_on_kit_components
+            and not p.explode_kit_in_sales
+            and (p.type != 'goods' or not p.consumable)}
+        if templates:
+            Template.write(list(templates), {
+                    'type': 'goods', 'consumable': True})
+
+    @fields.depends('kit', 'stock_depends_on_kit_components',
+        'explode_kit_in_sales', 'template', 'type', 'consumable',
+        '_parent_template.type', '_parent_template.consumable')
+    def _on_change_kit_stock(self):
+        if (self.kit and self.stock_depends_on_kit_components
+                and not self.explode_kit_in_sales and self.template):
+            self.template.type = 'goods'
+            self.template.consumable = True
+            self.type = 'goods'
+            self.consumable = True
+
+    @fields.depends(methods=['_on_change_kit_stock'])
+    def on_change_stock_depends_on_kit_components(self):
+        self._on_change_kit_stock()
+
+    @fields.depends(methods=['_on_change_kit_stock'])
+    def on_change_explode_kit_in_sales(self):
+        self._on_change_kit_stock()
+
+    @fields.depends(methods=['_on_change_kit_stock'])
+    def on_change_kit(self):
+        self._on_change_kit_stock()
 
     def check_required_salable_products_in_kits(self):
         KitLine = Pool().get('product.kit.line')
@@ -105,6 +152,7 @@ class Product(metaclass=PoolMeta):
                         prices[product.id] = Currency.compute(
                             user.company.currency, prices[product.id],
                             currency, round=False)
+            prices[product.id] = round_price(prices[product.id])
 
         if todo_products:
             prices.update(super(Product, cls).get_sale_price(todo_products,
