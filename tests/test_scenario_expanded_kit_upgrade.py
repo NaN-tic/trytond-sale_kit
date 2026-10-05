@@ -21,7 +21,7 @@ class TestExpandedKitUpgrade(test_scenario_kit_shipments.TestKitShipments):
         self.setup_company()
         Sale = Model.get('sale.sale')
         sale = Sale(party=self.customer, payment_term=self.payment_term,
-            invoice_method='shipment', warehouse=self.warehouse)
+            invoice_method='fulfillment', warehouse=self.warehouse)
         kits = []
         components = []
         for quantity in [10, 20]:
