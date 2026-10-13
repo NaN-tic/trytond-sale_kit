@@ -559,6 +559,10 @@ class Assign(metaclass=PoolMeta):
         Lang = pool.get('ir.lang')
         if (isinstance(self.record, Shipment)
                 and self.record.kit_component_shipments):
+            if 'moves' in values:
+                Move = pool.get('stock.move')
+                values['moves'] = [m.id for m in Move.browse(values['moves'])
+                    if not m.product.consumable]
             lang = Lang.get()
             if 'component_summary' in fields:
                 values['component_summary'] = self._component_summary(lang)

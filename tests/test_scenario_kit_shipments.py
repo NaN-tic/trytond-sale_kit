@@ -257,6 +257,8 @@ class TestKitShipments(unittest.TestCase):
                 self.assertIn('stock shortage 454', gasket)
                 self.assertIn('available but unreserved 6', gasket)
                 self.assertNotIn('Packing:', summary)
+                self.assertNotIn(packing,
+                    [m.product for m in assign.form.moves])
                 self.assertEqual(len([m for m in assign.form.moves
                             if m.product == component]), 2)
                 assign.execute('ignore')
@@ -264,3 +266,8 @@ class TestKitShipments(unittest.TestCase):
                 self.assertEqual(shipment.state, 'assigned')
                 self.assertEqual(sum(m.quantity
                         for m in shipment.outgoing_moves), 2)
+                child = self.finish(shipment)
+                self.assertEqual(sum(m.quantity for m in child.outgoing_moves
+                        if m.product == packing), 2)
+                self.assertEqual(sum(m.quantity for m in child.outgoing_moves
+                        if m.product == component), 20)
