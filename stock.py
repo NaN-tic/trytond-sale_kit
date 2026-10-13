@@ -10,6 +10,7 @@ from trytond.model import ModelView, Workflow, dualmethod, fields
 from trytond.model.exceptions import AccessError
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Bool, Eval
+from trytond.transaction import Transaction
 
 
 _kit_shipments = ContextVar('sale_kit_shipments', default=frozenset())
@@ -488,16 +489,93 @@ class AssignPartial(metaclass=PoolMeta):
 
     kit_summary = fields.Text("Kit Reservations", readonly=True,
         states={'invisible': ~Eval('kit_summary')})
+    component_summary = fields.Text("Unreserved Quantities", readonly=True,
+        states={'invisible': ~Eval('component_summary')})
+    show_moves = fields.Boolean("Show Move Details",
+        states={'invisible': ~Eval('component_summary')})
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        cls.moves.states['invisible'] = (
+            cls.moves.states.get('invisible', False)
+            | (Bool(Eval('component_summary')) & ~Eval('show_moves')))
 
 
 class Assign(metaclass=PoolMeta):
     __name__ = 'stock.shipment.assign'
+
+    def _component_summary(self, lang):
+        """Group pending demand and distinguish stock from incomplete kits."""
+        pool = Pool()
+        Product = pool.get('product.product')
+        Location = pool.get('stock.location')
+        Uom = pool.get('product.uom')
+        Date = pool.get('ir.date')
+        moves = [m for m in self.record.assign_moves
+            if m.state in {'draft', 'staging'} and m.quantity
+            and not m.product.consumable]
+        if not moves:
+            return ''
+        locations = Location.search([
+                ('parent', 'child_of', [m.from_location.id for m in moves]),
+                ])
+        with Transaction().set_context(company=self.record.company.id):
+            today = Date.today()
+        with Transaction().set_context(company=self.record.company.id,
+                stock_date_end=today, stock_assign=True):
+            available = Product.products_by_location(
+                [l.id for l in locations],
+                grouping_filter=([m.product.id for m in moves],))
+        totals = defaultdict(lambda: [0., 0.])
+        for move in moves:
+            unit = move.product.default_uom
+            locations = Location.search([
+                    ('parent', 'child_of', [move.from_location.id]),
+                    ('type', '!=', 'view'),
+                    ])
+            locations = [l for l in locations if l != move.to_location]
+            quantities = [(key, Uom.compute_qty(
+                        unit, quantity, move.unit, round=False))
+                for key, quantity in available.items()
+                if key[1] == move.product.id]
+            quantities = move.sort_quantities(
+                quantities, locations, ('product',))
+            picked = 0.
+            if move.state == 'draft':
+                for key, quantity in move.pick_product(quantities):
+                    quantity = Uom.compute_qty(
+                        move.unit, quantity, unit, round=False)
+                    picked += quantity
+                    key = (key[0], move.product.id)
+                    available[key] = available.get(key, 0.) - quantity
+            total = totals[move.product]
+            total[0] += Uom.compute_qty(
+                move.unit, move.quantity, unit, round=False)
+            total[1] += picked
+        lines = [gettext('sale_kit.msg_unreserved_explanation')]
+        for product, (pending, available) in sorted(
+                totals.items(), key=lambda item: item[0].rec_name):
+            unit = product.default_uom
+            lines.append(gettext('sale_kit.msg_unreserved_component',
+                    product=product.rec_name,
+                    pending=lang.format_number_symbol(unit.round(pending), unit),
+                    missing=lang.format_number_symbol(
+                        unit.round(max(0, pending - available)), unit),
+                    available=lang.format_number_symbol(
+                        unit.round(available), unit)))
+        return '\n'.join(lines)
 
     def default_partial(self, fields):
         values = super().default_partial(fields)
         pool = Pool()
         Shipment = pool.get('stock.shipment.out')
         Lang = pool.get('ir.lang')
+        if (isinstance(self.record, Shipment)
+                and self.record.kit_component_shipments):
+            lang = Lang.get()
+            if 'component_summary' in fields:
+                values['component_summary'] = self._component_summary(lang)
         if 'kit_summary' in fields and isinstance(self.record, Shipment):
             lang = Lang.get()
             _, quantities = self.record._kit_reservations()
@@ -506,5 +584,6 @@ class Assign(metaclass=PoolMeta):
                     requested=lang.format_number_symbol(
                         move.quantity, move.unit),
                     reserved=lang.format_number_symbol(quantity, move.unit))
-                for move, quantity in quantities.items())
+                for move, quantity in quantities.items()
+                if quantity < move.quantity)
         return values

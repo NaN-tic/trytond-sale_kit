@@ -130,6 +130,13 @@ class TestKitShipments(unittest.TestCase):
                 self.assertEqual(assign.form_state, 'partial')
                 self.assertIn('20', assign.form.kit_summary)
                 self.assertIn('10', assign.form.kit_summary)
+                self.assertIn('A: pending 10', assign.form.component_summary)
+                self.assertIn('stock shortage 10', assign.form.component_summary)
+                self.assertIn('B: pending 10', assign.form.component_summary)
+                self.assertIn('available but unreserved 10',
+                    assign.form.component_summary)
+                self.assertFalse(assign.form.show_moves)
+                assign.form.show_moves = True
                 self.assertIn(component_a,
                     [m.product for m in assign.form.moves])
                 child.reload()
@@ -222,3 +229,38 @@ class TestKitShipments(unittest.TestCase):
                 forced_shipment.reload()
                 self.assertEqual(forced_shipment.state, 'assigned')
                 self.finish(forced_shipment)
+
+                # Group split remainders and omit consumables from the summary.
+                component = self.make_product('Gasket')
+                packing = self.make_product('Packing')
+                packing.template.consumable = True
+                packing.template.save()
+                bag = self.make_product('Bag')
+                bag.kit = True
+                bag.explode_kit_in_sales = False
+                bag.stock_depends_on_kit_components = True
+                bag.kit_fixed_list_price = True
+                for product, quantity in [(component, 10), (packing, 1)]:
+                    line = bag.kit_lines.new()
+                    line.product = product
+                    line.quantity = quantity
+                bag.save()
+                self.supply(component, 26)
+                bags = self.make_sale(bag, 48)
+                shipment, = bags.shipments
+                assign = Wizard('stock.shipment.assign', [shipment])
+                summary = assign.form.component_summary
+                self.assertEqual(summary.count('Gasket:'), 1)
+                gasket = next(l for l in summary.splitlines()
+                    if l.startswith('Gasket:'))
+                self.assertIn('pending 460', gasket)
+                self.assertIn('stock shortage 454', gasket)
+                self.assertIn('available but unreserved 6', gasket)
+                self.assertNotIn('Packing:', summary)
+                self.assertEqual(len([m for m in assign.form.moves
+                            if m.product == component]), 2)
+                assign.execute('ignore')
+                shipment.reload()
+                self.assertEqual(shipment.state, 'assigned')
+                self.assertEqual(sum(m.quantity
+                        for m in shipment.outgoing_moves), 2)

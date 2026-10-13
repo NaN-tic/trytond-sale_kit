@@ -91,6 +91,23 @@ msgctxt "field:stock.shipment.assign.partial,kit_summary:"
 msgid "Kit Reservations"
 msgstr "Reserves de kits"
 
+msgctxt "field:stock.shipment.assign.partial,component_summary:"
+msgid "Unreserved Quantities"
+msgstr "Quantitats pendents de reservar"
+
+msgctxt "field:stock.shipment.assign.partial,show_moves:"
+msgid "Show Move Details"
+msgstr "Mostra el detall dels moviments"
+
+msgctxt "model:ir.message,text:msg_unreserved_explanation"
+msgid "Pending quantities are not stock balances. Available quantities remain unreserved when they cannot complete a kit. Show move details to select individual pending moves."
+msgstr "Les quantitats pendents no són existències. El material disponible queda sense reservar quan no permet completar un kit. Mostreu el detall per seleccionar moviments pendents individuals."
+
+#, python-format
+msgctxt "model:ir.message,text:msg_unreserved_component"
+msgid "%(product)s: pending %(pending)s; stock shortage %(missing)s; available but unreserved %(available)s."
+msgstr "%(product)s: pendent %(pending)s; falta d'estoc %(missing)s; disponible sense reservar %(available)s."
+
 #, python-format
 msgctxt "model:ir.message,text:msg_component_shipment_control"
 msgid "Manage component shipments through their kit shipment \"%(shipment)s\"."
