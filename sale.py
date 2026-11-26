@@ -166,9 +166,17 @@ class SaleLine(metaclass=PoolMeta):
 
     @classmethod
     def create(cls, values):
-        lines = super(SaleLine, cls).create(values)
-        if (Transaction().context.get('explode_kit', True)
-                and not Transaction().context.get('standalone', False)):
+        explode_kit = (Transaction().context.get('explode_kit', True)
+            and not Transaction().context.get('standalone', False))
+        if explode_kit:
+            # Function field setters may write the new line from inside
+            # super().create().  Defer the expansion until all setters have
+            # finished so the kit is expanded exactly once with final values.
+            with Transaction().set_context(explode_kit=False):
+                lines = super().create(values)
+        else:
+            lines = super().create(values)
+        if explode_kit:
             lines.extend(cls.explode_kit(lines))
         return lines
 
